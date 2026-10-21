@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When do cereal shortfalls become food crises?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main class="page">
+<article class="wrap">
+  <header class="head">
+    <time class="pubdate" datetime="2026-10-15">15 October 2026</time>
+    <h1>When do cereal shortfalls become food crises?</h1>
+    <p class="standfirst">An investigation, not a forecast. We mapped how much El Niño shrinks each country’s cereal harvests, then tested which other measures help explain where those losses became national food crises after the last two El Niños. Switch the map’s second measure to try them yourself.</p>
+  </header>
+
+  <figure class="fig">
+    <div class="fig-top">
+      <div class="seg axisseg" id="axisseg" role="group" aria-label="Compare the harvest shortfall with another measure"></div>
+      <div class="seg" id="zoomseg" role="group" aria-label="Zoom to region">
+        <button data-z="world" aria-pressed="true">World</button>
+      </div>
+    </div>
+    <div class="fig-body">
+      <div class="mapbox" id="mapbox"><div class="tip" id="tip"></div><div class="key" id="mapkey"></div></div>
+      <div class="score" id="score" aria-live="polite"></div>
+    </div>
+    <figcaption>
+      <p class="keyline keysym"><span><i class="fiswatch"></i>National food crisis (10%+ in IPC Crisis or worse)</span><span><i class="fiswatch minor"></i>Smaller crisis (5–10%) or UN appeal</span><span><i class="hatchswatch"></i>Shortfall may be chance</span><span><i class="nodataswatch"></i>Too little data</span></p>
+      <p class="keyline keydefs"><span id="axisdef"><b>Imports:</b>&nbsp;% of cereals, 2020–22</span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>
+      <p class="source">Sources: FAO, via Our World in Data; NOAA.</p>
+    </figcaption>
+  </figure>
+    <section class="scores" id="scores">
+      <h3>Every measure, tested</h3>
+      <p class="snote">Drawn as it would have looked before each El Niño. A country is flagged with a harvest shortfall of 5% or more and the middle or top class of the second measure. Click a row to show it on the map.</p>
+      <table><thead><tr><th scope="col">Rule</th><th scope="col">2015–16 crises caught</th><th scope="col">2023–24</th><th scope="col">Hit rate</th><th scope="col">Precision</th></tr></thead><tbody></tbody></table>
+    </section>
+
+  <section class="story">
+    <h3>The question</h3>
+    <p>A strong El Niño is forming, and NOAA says it could become the strongest since records began in 1950. Farmers in southern Africa are planting now for their 2027 harvest. El Niño often brings drought there, but not every bad harvest becomes a food crisis. So we asked: where did El Niño’s harvest losses tip into national food crises after the last two El Niños, and what made the difference?</p>
+    <h3>What held up</h3>
+    <p>Southern Africa’s harvests shrink more in El Niño years than any other region’s, and ten of the twelve national food crises after the last two El Niños, in countries with harvest data, were there. Zimbabwe, Namibia and South Africa lose about a quarter or more of their harvest in a typical El Niño, and that held in every check we ran.</p>
+    <h3>Test 1: do past harvest losses warn?</h3>
+    <p>We drew the map as it would have looked before each El Niño, from the harvests known then. Before 2015–16 it was a weak warning: 3 of the 31 countries it flagged had a crisis, against 3 of the 99 others. Before 2023–24 it was a good one: 5 of 26, against 1 of the other 106.</p>
+    <h3>Test 2: or is it just geography?</h3>
+    <p>Flagging every southern African country would have done as well. It caught 10 of the 12 crises, with 10 false alarms; harvest losses alone caught 8, with 49. The region itself is the warning. Within it, harvest losses sharpen the warning only a little.</p>
+    <h3>Test 3: does depending on imports add risk?</h3>
+    <p>No. Countries with big shortfalls and high import shares had crises no more often than those with shortfalls alone. In southern Africa, adding imports even dropped Malawi and Zambia, which grow most of their own maize and tipped anyway. Importing mixes wealthy countries that can buy grain with poor ones that cannot.</p>
+    <h3>Test 4: does the capacity to cope explain it?</h3>
+    <p>Partly. South Africa’s harvests suffer as much as its neighbours’, but it has the money, stocks and markets to absorb a bad year, and income, poverty and human development all mark it as able to cope. Yet none of the simple measures we tried improved the warning in both crisis periods. With twelve crises, the data can show that coping capacity matters, but not how to map it. The table below the map scores every measure.</p>
+    <h3>What it rests on</h3>
+    <p>Much of the signal comes from one drought: 1991–92, the worst in southern Africa in decades. Without it, neither test is significant. Shocks that coincide with El Niño blur the picture too: Mozambique’s apparent harvest signal comes from its civil-war years, not the weather.</p>
+    <h3>What a specialist would do next</h3>
+    <p>Use maize rather than all cereals, and provinces rather than countries; link harvests to rainfall; and test established measures of coping capacity across more events. This page is a first exploration by someone trained in disaster management, not a food-security specialist, and comments from people who work in the field are very welcome.</p>
+    <p class="aside">Cautions: the map shows associations, not causes or crisis probabilities. National figures hide local failures, cereals miss staples like sweet potato, and the crisis rule counts any weather-driven crisis, which in 2016 and 2024 meant mostly El Niño droughts.</p>
+  </section>
+
+  <section class="method">
+    <h3>How we made this map</h3>
+    <div class="cols">
+      <p><b>Harvest shortfall.</b> We fit a smooth trend (LOWESS) to each country’s cereal production since 1975 and compare El Niño harvests with neutral ones, years with neither El Niño nor La Niña (NOAA). In southern Africa the harvest after the event counts. We use production, not yield, because failed fields go unharvested. Countries need 30 years of data and 50,000 tonnes a year.</p>
+      <p><b>Imports.</b> Net imports as a share of cereal supply (FAO’s import dependency ratio), averaged over 2020–22 and recomputed from FAO food balance sheets.</p>
+      <p><b>What the map shows.</b> In disaster-risk terms, the shortfall measures exposure and sensitivity: how much a country’s harvests suffer when El Niño hits. It does not measure coping capacity, so it is not a full picture of vulnerability. The import share was meant as a partial stand-in, but it cuts both ways: wealthy countries import because they can afford to, poorer ones because they must.</p>
+      <p><b>Second measures.</b> The explorer pairs the harvest shortfall with one other measure, in three classes fixed before testing: cereal imports (25% and 50%), income (the World Bank’s income groups, using GDP per person), extreme poverty (25% and 50%), the Human Development Index (0.70 and 0.55) and life expectancy (the median, 74 years, and 65). A country is flagged with a shortfall of 5% or more and the middle or top class of the second measure. Income and poverty use values from before each crisis period; the Human Development Index and life expectancy are single recent values, a slight look-ahead for 2015–16.</p>
+      <p><b>Classes.</b> Shortfall under 5%, 5–15% and over 15%; imports under 25%, 25–50% and over 50%. Hatching marks p of 0.1 or more (Mann-Whitney test). Regions follow the UN’s M49 grouping, with Sudan in Sub-Saharan Africa.</p>
+      <p><b>Insight lines.</b> Each line under the region buttons is computed from the map’s data, except three that rest on research. West Asia and North Africa: a World Bank study finds the North Atlantic Oscillation, not El Niño, drove Tunisia’s 2015–16 drought, and FAO attributes the region’s hunger crises to conflict. Central America and the Caribbean: the Global Report on Food Crises attributes Haiti’s 2016 crisis to drought worsened by El Niño, then Hurricane Matthew. Southeast Asia and the Pacific: Timor-Leste’s IPC analysis names El Niño drought first among the drivers of its 2023–24 crisis.</p>
+      <p><b>Testing the map.</b> We drew the map as it would have looked before each crisis period, from what was known then: El Niños up to 2009 and harvests up to 2014 to predict 2015–16, and El Niños up to 2018–19 and harvests up to 2022 to predict 2023–24. A country is flagged at a shortfall of 5% or more. For 2015–16, 3 of 31 flagged countries had a national food crisis, against 3 of 99 others (Fisher’s exact test, p = 0.15); for 2023–24, 5 of 26 against 1 of 106 (p = 0.001). Both rounds together give 8 of 57 against 4 of 205 (p = 0.0008), but countries appear in both rounds, so that figure is optimistic. Counting dashed borders as crises gives 5 of 26 against 2 of 106 for 2023–24 (p = 0.003). The result rests heavily on the 1991–92 El Niño: without it, 2023–24 becomes 2 of 25 against 4 of 107 (p = 0.32), while dropping any other single El Niño leaves it significant. The cut-off matters too: at 3% the 2023–24 result holds (6 of 41 against 0 of 91), at 10% it weakens (p = 0.12). Against a simple baseline that flags every southern African country, the harvest measure does no better: across both rounds the baseline caught 10 of 12 crises with 10 false alarms, the harvest measure 8 with 49. Flagging only southern African countries with a shortfall caught 8 with 6 false alarms. Population: World Bank, 2024.</p>
+      <p><b>El Niño years.</b> Past El Niños are dated with NOAA’s Oceanic Niño Index (ONI), the standard until 2026. NOAA now uses the Relative Oceanic Niño Index (RONI), which subtracts the warming of the tropical oceans as a whole; the forecast in the story uses RONI. By RONI, only 2014 would change, from El Niño to neutral; the 2023–24 test becomes 5 of 30 against 1 of 102 (p = 0.002). A smoother trend (span 0.75) weakens it to 4 of 33 against 2 of 99 (p = 0.03): the effect holds in every version, but its size depends on these choices.</p>
+      <p><b>Borders.</b> Solid: a national food crisis, at least 10% of a country’s whole population in IPC or Cadre Harmonisé Phase 3 (Crisis) or worse at the peak after an El Niño, in 2016 or the 2023/24 season, with weather extremes as the main driver. Dashed: a smaller crisis, 5–10% on the same rule, or a country-level joint government–UN emergency appeal for El Niño drought. Figures come from the Global Report on Food Crises 2017 (for 2016) and its 2024 and 2025 country profiles, and for Timor-Leste from its IPC analysis; South Africa’s 2016 figure is a government estimate the Global Report accepted as equivalent. Somaliland counts as Somalia.</p>
+      <p><b>Not yet verified.</b> El Salvador (2023–24), Bangladesh (2024), Angola (2024) and North Korea (2016) could not be checked against the rule. Each could shift a count by one; none would change the conclusion.</p>
+      <p><b>Sources.</b> FAO, FAOSTAT <a href="https://www.fao.org/faostat/en/#data/FBSH">Food Balances, historic</a> and <a href="https://www.fao.org/faostat/en/#data/FBS">2010 onward</a>, and <a href="https://www.fao.org/faostat/en/#data/FS">Food Security Indicators</a>; <a href="https://ourworldindata.org/grapher/cereal-production">cereal production</a> via Our World in Data; NOAA <a href="https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php">Oceanic Niño Index</a>; FAO <a href="https://www.fao.org/fileadmin/user_upload/emergencies/docs/FAOElNinoSitRep_versionJULY.pdf">El Niño situation report, July 2016</a>; Botswana Daily News, <a href="https://dailynews.gov.bw/news-detail/29638">Khama declares 2015/16 a drought year</a>; OCHA <a href="https://www.unocha.org/publications/report/mozambique/southern-africa-el-nino-regional-humanitarian-overview-september-2024">Southern Africa El Niño overview, September 2024</a> and <a href="https://www.unocha.org/publications/report/guatemala/guatemala-humanitarian-needs-overview-2024-december-2023">Guatemala needs overview 2024</a>; WMO, <a href="https://wmo.int/news/media-centre/el-nino-set-become-very-strong-raising-risks-of-extreme-weather-2027">El Niño set to become very strong</a>, 3 September 2026; NOAA, <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">ENSO diagnostic discussion</a>, 8 October 2026; UN, <a href="https://malawi.un.org/sites/default/files/2026-09/ROSEA_El-Ni%C3%B1o_Preparedness_Alert_Southern-Africa_20260815_Final4_5.pdf">Southern Africa El Niño Preparedness Alert</a>, August 2026; FAO, FEWS NET, JRC and WFP, <a href="https://www.fao.org/newsroom/detail/El-Ni%C3%B1o-set-to-have-a-devastating-impact-on-southern-Africa-s-harvests-and-food-security/en">joint statement on southern Africa</a>, February 2016; FAO, IFAD and WFP, <a href="https://www.fao.org/africa/events/events-detail/UN-agencies-take-stock-of-El-Ni%C3%B1o-impacts-in-Africa-and-Asia-Pacific-gear-up-for-La-Ni%C3%B1a/en">El Niño impacts review</a>, July 2016; FAO and WFP, <a href="https://executiveboard.wfp.org/document_download/WFP-0000159219">Hunger Hotspots, June–October 2024</a>; WFP, <a href="https://www.wfp.org/stories/southern-africa-el-nino-drought-leaves-trail-scorched-harvests-and-hunger">southern Africa El Niño drought</a>, May 2024; World Bank, <a href="https://openknowledge.worldbank.org/entities/publication/832357cf-c758-5068-b6eb-e85bb52d489e">drought in Morocco’s and Tunisia’s agriculture</a>; FAO GIEWS, <a href="https://news.un.org/en/story/2016/03/523892">Crop Prospects and Food Situation</a>, March 2016; Australian Bureau of Meteorology, <a href="https://www.bom.gov.au/climate/updates/articles/a018.shtml">2015–16 El Niño impacts</a>; Development Policy Centre, <a href="https://devpolicy.org/the-ongoing-impact-of-the-el-nino-drought-and-frosts-in-papua-new-guinea-20160115/">El Niño drought and frosts in Papua New Guinea</a>; FSIN, <a href="https://www.fightfoodcrises.net/sites/default/files/resources/files/Global_Report_FoodCrisis.pdf">Global Report on Food Crises 2017</a> and <a href="https://www.fightfoodcrises.net/global-report-food-crises">2024–2025 country profiles</a>; IPC, <a href="https://knowledge4policy.ec.europa.eu/publication/timor-leste-acute-food-insecurity-situation-november-2023-april-2024-projection-may_en">Timor-Leste, November 2023–April 2024</a>; World Bank, <a href="https://data.worldbank.org/indicator/SP.POP.TOTL">population</a>. Data and code: <code>data/cereal_import_dependency_ratio_1961_2022.csv</code>, <code>build_data.py</code>; a step-by-step trace of the calculation, with these checks, in <code>TRACE.md</code> (<code>trace.py</code>).</p>
+    </div>
+    <div class="disclosure">
+      <h3>Process disclosure</h3>
+      <p class="dnote">AI assistance, described qualitatively. These are roles, not measured percentages. Collaboration is how much back-and-forth each step took.</p>
+      <table>
+        <thead><tr><th scope="col">Process</th><th scope="col">Human</th><th scope="col">AI (Claude)</th><th scope="col">Collaboration</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Idea &amp; editorial direction</th><td>Led, incl. reframing as an investigation</td><td>Assisted</td><td>High</td></tr>
+          <tr><th scope="row">Definitions &amp; thresholds</th><td>Shaped the crisis rule</td><td>Proposed classes &amp; specifics</td><td>High</td></tr>
+          <tr><th scope="row">Method design &amp; testing</th><td>Questioned results, asked for tests</td><td>Proposed &amp; built tests</td><td>High</td></tr>
+          <tr><th scope="row">Alternative explanations</th><td>Raised the hypotheses</td><td>Chose measures, ran the tests</td><td>High</td></tr>
+          <tr><th scope="row">Data processing &amp; statistics</th><td>Reviewed results</td><td>Did the work</td><td>Low</td></tr>
+          <tr><th scope="row">Traceability &amp; sources</th><td>Asked for a full trace</td><td>Built trace, scripts &amp; sources</td><td>Low</td></tr>
+          <tr><th scope="row">Source research &amp; fact-checking</th><td>Spot-checked</td><td>Heavily assisted</td><td>Medium</td></tr>
+          <tr><th scope="row">Visual design</th><td>Led</td><td>Assisted</td><td>High</td></tr>
+          <tr><th scope="row">Interactive explorer</th><td>Proposed concept &amp; layout</td><td>Built it</td><td>High</td></tr>
+          <tr><th scope="row">Annotation &amp; labelling rules</th><td>Set the rules</td><td>Built the algorithms</td><td>High</td></tr>
+          <tr><th scope="row">Code &amp; debugging</th><td>Directed &amp; tested in browser</td><td>Wrote the code</td><td>Low</td></tr>
+          <tr><th scope="row">Copy &amp; insight lines</th><td>Directed &amp; edited</td><td>Drafted</td><td>Medium</td></tr>
+          <tr><th scope="row">Final editorial decisions</th><td>Made by me</td><td>No decision authority</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="credit">An experiment by Patrick Wojda, data visualisation engineer trained in disaster management. Made with Claude; please verify the numbers. Corrections welcome.</p>
+
+  </section>
+</article>
+</main>
+
+<script src="js/vendor/topojson-client.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/axes.js"></script>
+<script src="js/chart.js"></script>
+</body>
+</html>
