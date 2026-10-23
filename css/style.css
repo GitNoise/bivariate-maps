@@ -1,162 +1,74 @@
 :root{
-  --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --hoverwash:#E2E1DC; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
-  --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6;
-  --dep:#2F6380; --dep-soft:#C9D9E3; --up:#A5321F; --up-soft:#E8B5A8; --down:#4F7A5A; --down-soft:#CFE0D2;
-  --elnino:#B8862B; --track:#E6E8E1; --exp:#D6E3D0; --harv:#8A5A1E; --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
+  --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
+  --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6; --dep:#2F6380;
+  --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --hoverwash:#343A37; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
-  --rule:#343B37; --land:#2B322E; --land-line:#171B19;
-  --dep:#7FB0CC; --dep-soft:#2E4552; --up:#E8735C; --up-soft:#5A302A; --down:#8DBF98; --down-soft:#2C4232;
-  --elnino:#D4A84A; --track:#2A302D; --exp:#2E4032; --harv:#D8A25E; --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
+  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
+  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
+  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
 }}
 :root[data-theme="dark"]{
-  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --hoverwash:#343A37; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
-  --rule:#343B37; --land:#2B322E; --land-line:#171B19;
-  --dep:#7FB0CC; --dep-soft:#2E4552; --up:#E8735C; --up-soft:#5A302A; --down:#8DBF98; --down-soft:#2C4232;
-  --elnino:#D4A84A; --track:#2A302D; --exp:#2E4032; --harv:#D8A25E; --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
+  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
+  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
+  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:inherit}
 body{margin:0;background-color:var(--bg);color:var(--ink);font-family:"Source Sans 3","Source Sans Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 main.page{display:block;max-width:1100px;margin:0 auto}   /* the page never grows wider than this; the map's height follows */
-.wrap{max-width:none;margin:0;padding:40px 24px 64px}
-.wrap{position:relative}
+.wrap{position:relative;max-width:1340px;margin:0;padding:48px 28px 72px}
 .pubdate{display:block;margin:0 0 10px;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;color:var(--ink-3);font-variant-numeric:lining-nums tabular-nums;letter-spacing:.01em}
 h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,4.4vw,48px);line-height:1.05;letter-spacing:-.01em;margin:0 0 14px;max-width:20ch}
-.lede{max-width:64ch;color:var(--ink-2);margin:0 0 28px;font-size:16px}
-.lede b{color:var(--ink);font-weight:600}
-h2{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:28px;line-height:1.1;margin:48px 0 6px;letter-spacing:-.01em}
-.sub{color:var(--ink-2);max-width:68ch;margin:0 0 18px}
 
-.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin-bottom:14px}
+/* ---- editorial layout ---------------------------------------------- */
+.head{max-width:900px;margin:0 0 28px}
+.head .standfirst{max-width:38em}
+.head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
+.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;max-width:36em;text-wrap:pretty}
+.fig{margin:0 0 44px}
+/* one control line: the theory dropdown, then the regions (selected filled) */
+.fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:12px}
 .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:999px;padding:3px;background:var(--panel)}
 .seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-weight:500;padding:6px 14px;border-radius:999px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .seg button:focus-visible{outline:2px solid var(--dep);outline-offset:2px}
-.key{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;align-items:center}
-.key span{display:inline-flex;align-items:center;gap:6px}
-.key i{width:14px;height:14px;border-radius:3px;display:inline-block}
-.key .ramp{width:140px;height:12px;border-radius:2px}
+#zoomseg,#axisseg{display:flex;flex-wrap:wrap;gap:2px;border:0;background:none;padding:0;border-radius:0;margin:0}
+#axisseg{order:0;flex:0 0 auto;align-items:center}
+#zoomseg{order:1;flex:1 1 auto;align-items:center}
+#zoomseg button{border:0;background-color:transparent;background-repeat:no-repeat;border-radius:0;padding:6px 8px;color:var(--ink-2);font-size:13px;font-weight:500;transition:color .15s ease}
+#zoomseg button:hover{color:var(--ink);background-color:var(--btnhover)}
+#zoomseg button:focus-visible{outline:2px solid var(--bi02);outline-offset:2px;border-radius:2px}
+#zoomseg button[aria-pressed="true"],#zoomseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn);font-weight:600;box-shadow:none}
+/* a quiet dropdown: thin light border, small grey chevron, the buttons' weight */
+#axissel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--ink);background-color:transparent;
+  border:1px solid var(--rule);border-radius:3px;padding:6px 30px 6px 10px;cursor:pointer;line-height:1.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237A837D' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:10px 6px;background-position:right 10px center}
+#axissel:focus-visible{outline:2px solid var(--bi02);outline-offset:2px}
+#axissel:hover{border-color:var(--ink-3)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #axissel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A3ACA6' stroke-width='1.4'/%3E%3C/svg%3E")} }
 
-.mapbox{position:relative;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 -24px;padding:8px 0}
+/* ---- the map ---------------------------------------------------------- */
+.mapbox{position:relative;margin:0;border:0;padding:0}
 .mapbox svg{display:block;width:100%;height:auto}
-.country{fill:var(--land);stroke:var(--land-line);stroke-width:.5}
+.mapbox > canvas.wc{position:absolute;left:0;top:0;pointer-events:none}
+.mapbox > svg{position:relative}
+.country{fill:var(--land);stroke:var(--land-line);stroke-width:.5;vector-effect:non-scaling-stroke}
 .country.hit{cursor:pointer}
 .country.hit:hover{stroke:var(--ink);stroke-width:1}
-#zoomseg button{font-size:13px}
-.key{margin:0 0 10px}
-.bilegend{display:inline-flex;align-items:center;gap:10px}
-.key .bigrid{display:grid;grid-template-columns:repeat(3,14px);grid-template-rows:repeat(3,14px);gap:1px}
-.key .bigrid i{width:14px;height:14px;border-radius:1px;display:block}
-.key .bitext{display:block;font-size:12px;line-height:1.35;color:var(--ink-2)}
-.bitext b{font-weight:600;color:var(--ink)}
-.mapbox.bi .country{fill:var(--nodata)}
 #mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:opacity .45s ease}
 #mapbox svg .dim{opacity:.12}
 @media (prefers-reduced-motion: reduce){ #mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:none} }
-.hatchline{fill:var(--hatch);opacity:.8}
-.key .bilegend{display:block}
-.key .bilegend svg{display:block;max-width:100%;height:auto;overflow:visible}
-.key .keyside{display:flex;flex-direction:column;align-items:flex-start;gap:8px;align-self:center}
-.bl-tk{font-size:9.5px;fill:var(--ink-3)}
-.bl-ax{font-size:10.5px;font-weight:400;fill:var(--ink-2)}
-.bl-yr{font-size:12px;fill:var(--ink-3)}
-.bl-top{font-size:11px;font-weight:700;fill:var(--ink)}
-.key .hatchswatch{width:14px;height:14px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--bi22) 0 2px,var(--hatch) 2px 3.5px)}
-.smallmark{stroke:var(--ink-2);vector-effect:non-scaling-stroke}
-.country{vector-effect:non-scaling-stroke}
+.smallmark{stroke:var(--inkline);stroke-width:.6;vector-effect:non-scaling-stroke}
 .callouts text{letter-spacing:.06em;text-transform:uppercase;paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;stroke-opacity:.9}
 .callouts .wnote text{letter-spacing:0;text-transform:none}
 .callouts .wn-title{font-weight:600;fill:var(--ink)}
 .callouts .wn-body{fill:var(--ink-2)}
-.callouts .wn-lead{stroke:var(--ink-3);fill:none}
 .callouts .swoop{fill:none;stroke:var(--ink);opacity:.75}
 .callouts .swoop-head{fill:var(--ink);opacity:.75}
-.maplabels text{text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:2.5px;stroke-linejoin:round;stroke-opacity:.9}
 .ml-name{fill:var(--ink);font-weight:600}
-.ml-val{fill:var(--ink-2)}
-.mapnote{font-size:13px;color:var(--ink-3);margin:4px 0 0;max-width:78ch}
-.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);color:var(--ink);padding:10px 12px;max-width:262px;font-size:13px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;z-index:5}
-.tip b{display:block;font-size:14px;margin-bottom:3px}
-.tip .ev{color:var(--ink-2)}
-.tip em{font-style:normal;font-weight:600;color:var(--ink)}
-
-.yl{font-size:11px;fill:var(--ink-3)}
-.unit{font-size:11px;fill:var(--ink-3);font-weight:400}
-
-
-.method{margin-top:48px;border-top:1px solid var(--rule);padding-top:18px;color:var(--ink-2);font-size:13.5px;max-width:78ch}
-.method h4{margin:0 0 8px;font-size:14px;color:var(--ink);font-weight:600}
-.method p{margin:0 0 10px}
-.method ol{padding-left:18px;margin:8px 0}
-.method li{margin:4px 0}
-.method a{color:var(--ink);text-decoration-color:var(--ink-3)}
-.method code{font-size:12.5px}
-@media (max-width:640px){ .wrap{padding:28px 18px 48px} .mapbox{margin:0 -18px} }
-@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
-
-/* ---- editorial layout ---------------------------------------------- */
-.wrap{max-width:1340px;padding:48px 28px 72px}
-.head{max-width:900px;margin:0 0 28px}
-.head .standfirst{max-width:38em}
-.head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
-.standfirst{text-wrap:pretty}
-.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;max-width:36em}
-.fig{margin:0 0 44px}
-.insight{flex:1 1 100%;margin:10px 0 0;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:16px;line-height:1.45;color:var(--ink);max-width:88ch;min-height:1.4em;transition:opacity .15s ease}
-.fig-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 32px;flex-wrap:wrap;border-top:0;padding-top:0;margin-bottom:18px}
-.fig-title{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:15px;font-weight:600;line-height:1.3;margin:0 0 3px;max-width:60ch;letter-spacing:0;color:var(--ink)}
-#zoomseg,#axisseg{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;border:0;background:none;padding:0;border-radius:0;margin-top:12px}
-#zoomseg button,#axisseg button{border:0;background-color:transparent;background-repeat:no-repeat;border-radius:0;padding:6px 12px;color:var(--ink-2);font-weight:500;transition:color .15s ease}
-#zoomseg button:hover,#axisseg button:hover{color:var(--ink);background-color:var(--btnhover)}
-#zoomseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn)}
-#zoomseg button:focus-visible,#axisseg button:focus-visible{outline:2px solid var(--bi02);outline-offset:2px;border-radius:2px}
-#zoomseg button[aria-pressed="true"]{color:var(--btntext);background-color:var(--btn);font-weight:600}
-/* the filter row is secondary: the selected measure is bold and underlined, not filled */
-#axisseg button[aria-pressed="true"],#axisseg button[aria-pressed="true"]:hover{color:var(--ink);background-color:transparent;font-weight:600;box-shadow:inset 0 -2px 0 var(--ink)}
-#zoomseg button{font-size:13px}
-.mapbox{position:relative;margin:0;border:0;padding:0}
-.mapbox > canvas.wc{position:absolute;left:0;top:0;pointer-events:none}
-.mapbox > svg{position:relative}
-.mapbox > .key{position:absolute;left:0;bottom:0;margin:0;pointer-events:none;z-index:3;width:auto;background:color-mix(in srgb, var(--bg) 72%, transparent);border-radius:0;padding:6px 6px 2px}
-.mapbox > .key .bilegend svg{display:block}
-.mapbox > .key .keyside{display:none}
-figcaption{border-top:1px solid var(--rule);padding-top:10px;margin-top:6px;max-width:none}
-.cap{font-size:14px;color:var(--ink);margin:0 0 8px;line-height:1.45}
-.keyline{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
-.keyline span{display:inline-flex;align-items:center;gap:7px}
-.keyline i{width:14px;height:14px;border-radius:2px;display:inline-block}
-/* centre swatches on the capital letters (cap height 0.66em), not the lowercase (x-height 0.49em): the labels start with capitals */
-.keyline i{position:relative;top:-.087em;flex-shrink:0}
-.keyline .diamondswatch{flex-shrink:0;position:relative;top:-.087em}
-.keyline .diamondswatch polygon{stroke:var(--bg);stroke-width:.6}
-.keyline .diamondswatch .dsoff{fill:var(--ink-3);fill-opacity:.28}
-/* the NAME sample is text: line it up with its label along the baseline */
-.keyline span:has(> .labelswatch){align-items:baseline}
-.keyline .labelswatch{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);paint-order:stroke}
-.keyline i.whiteswatch{background:var(--bg);box-shadow:inset 0 0 0 1px var(--ink-3)}
-.keyline span{display:inline-flex;align-items:center;gap:6px}
-.keyline .hatchswatch{background:repeating-linear-gradient(45deg,var(--bi22) 0 2px,var(--hatch) 2px 3.5px)}
-.keyline .nodataswatch{background:var(--nodata)}
-.source{font-size:12px;color:var(--ink-3);margin:0}
-.story{max-width:640px;margin:0 0 48px}
-.story p{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.55;margin:0 0 18px;color:var(--ink)}
-.story .aside{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--ink-2);border-left:2px solid var(--bi22);padding-left:14px;margin-top:26px}
-.method{max-width:none;margin:0;border-top:1px solid var(--rule);padding-top:16px;font-size:13px;line-height:1.5;color:var(--ink-2)}
-.method h3{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px;letter-spacing:0}
-.method .cols{columns:2 320px;column-gap:40px}
-.method .cols p{margin:0 0 10px;break-inside:avoid}
-.method b{color:var(--ink);font-weight:600}
-.method code{font-size:12px}
-@media (max-width:640px){
-  .wrap{padding:28px 18px 52px}
-  .head h1{font-size:26px}
-  .story p{font-size:16px}
-  #zoomseg{width:100%}
-}
-
 /* ---- watercolour and pencil --------------------------------------- */
 .mapbox .country{stroke:none}
 #mapbox svg .ink{fill:none;stroke:var(--inkline);stroke-width:.5;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.85;transition:opacity .45s ease,stroke-width .45s ease}
@@ -166,40 +78,107 @@ figcaption{border-top:1px solid var(--rule);padding-top:10px;margin-top:6px;max-
 #mapbox.world-view svg .fi-outline:not(.dim){stroke-width:1.6;opacity:1}
 #mapbox svg .fi-outline.minor{stroke-dasharray:4 3}   /* same width and ink as the solid border; only the dashes differ */
 #mapbox svg .fi-outline{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:1;pointer-events:none}
-#mapbox svg .ink.sel{stroke:var(--ink);stroke-width:2.6;opacity:1}
-.keyline .fiswatch{background:transparent;border:2.4px solid var(--ink);box-sizing:border-box}
-.keyline .fiswatch.minor{border-style:dashed}
-#mapbox svg .country.sel{stroke:none}
 .hatchline{fill:var(--inkline);opacity:.6}
 .hatchline-l{fill:#FFFFFF;opacity:.7}
-.smallmark{stroke:var(--inkline);stroke-width:.6}
 #mapbox svg .smallmark.fi{stroke:var(--ink);stroke-width:1.4}
+/* ---- the legend, on the map ---------------------------------------- */
+.key{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;align-items:center;margin:0 0 10px}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.bilegend{display:inline-flex;align-items:center;gap:10px}
+.key .bilegend{display:block}
+.key .bilegend svg{display:block;max-width:100%;height:auto;overflow:visible}
+.mapbox > .key{position:absolute;left:0;bottom:0;margin:0;pointer-events:none;z-index:3;width:auto;background:color-mix(in srgb, var(--bg) 72%, transparent);border-radius:0;padding:6px 6px 2px}
+.mapbox > .key .bilegend svg{display:block}
+.bl-tk{font-size:9.5px;fill:var(--ink-3)}
+.bl-ax{font-size:10.5px;font-weight:400;fill:var(--ink-2)}
+.bl-top{font-size:11px;font-weight:700;fill:var(--ink)}
 .bl-inkcell{fill:none;stroke:var(--inkstrong);stroke-width:.7;opacity:.9}
+.bilegend .bl-liftpaper{fill:var(--bg)}
+.bilegend .bl-liftedge{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
 /* ---- typography for the graphic (after Datawrapper's font guidance) ---- */
 .fig,.tip,#mapkey svg,.callouts{font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}
-/* ---- tooltip sparklines ---------------------------------------------- */
+/* ---- tooltip and its sparklines -------------------------------------- */
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);color:var(--ink);padding:10px 12px;max-width:262px;font-size:13px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;z-index:5}
+@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
+.tip > b{display:block;font-size:14px;margin-bottom:3px}
+.tip em{font-style:normal;font-weight:600;color:var(--ink)}
 .tip .tr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font-size:13px;line-height:1.55;color:var(--ink-2)}
 .tip .tr span{font-size:12.5px;color:var(--ink-3)}
 .tip .tr b{color:var(--ink);font-weight:600;text-align:right}
 .tip .tr i{font-style:normal;font-weight:400;color:var(--ink-3);font-size:12px}
-.tip > b{display:block;margin-bottom:3px}
 .tip .sp{margin-top:7px}
 .tip .sp-cap{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);line-height:1.2;margin-bottom:2px}
 .tip .sp svg{display:block;overflow:visible}
 .tip .sp-line{fill:none;stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
 .tip .sp-hit{stroke:var(--bi20)}
-.tip .sp-imp{stroke:var(--bi02)}
+.tip .sp-measure{stroke:var(--bi02)}
 .tip .sp-en{fill:var(--ink);opacity:.07}
 .tip .sp-zero{stroke:var(--ink-3);stroke-width:.6;stroke-dasharray:2 2}
 .tip .sp-key{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ink-3);margin-top:5px}
 .tip .sp-key i{width:8px;height:10px;background:var(--ink);opacity:.12;display:inline-block}
-.method .credit{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
-.method .credit{font-size:13px;color:var(--ink-3);margin:18px 0 0;font-style:italic}
-.bilegend .bl-note{font-size:10.5px;fill:var(--ink-2)}
-.bilegend .bl-howto{font-size:11.5px;font-weight:700;fill:var(--ink)}
-.bilegend .bl-howtotx{font-size:11px;fill:var(--ink-2)}
-.bilegend .bl-liftpaper{fill:var(--bg)}
-.bilegend .bl-liftedge{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+
+/* ---- caption: key line and source ------------------------------------ */
+figcaption{border-top:0;padding-top:0;margin-top:20px;max-width:none}
+.keyline{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.keyline span{display:inline-flex;align-items:center;gap:6px}
+/* centre swatches on the capital letters (cap height 0.66em), not the lowercase (x-height 0.49em): the labels start with capitals */
+.keyline i{width:14px;height:14px;border-radius:2px;display:inline-block;position:relative;top:-.087em;flex-shrink:0}
+.keyline .hatchswatch{background:repeating-linear-gradient(45deg,var(--bi22) 0 2px,var(--hatch) 2px 3.5px)}
+.keyline .nodataswatch{background:var(--nodata)}
+.keyline .fiswatch{background:transparent;border:2.4px solid var(--ink);box-sizing:border-box}
+.keyline .fiswatch.minor{border-style:dashed}
+figcaption .keyline{font-size:12px;color:var(--ink-3);gap:4px 16px;margin:0 0 4px}
+figcaption .keyline b{font-weight:600;color:var(--ink-2)}
+figcaption .keyline i{transform:scale(.85)}
+.source{font-size:12px;color:var(--ink-3);margin:0}
+figcaption .source{font-size:12px;margin-top:2px}
+
+/* ---- score line: three big numbers beside the map -------------------- */
+.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:10px 0 0;max-width:640px}
+.fig-body .score{gap:22px;margin:0}
+/* from 600px: the big numbers sit in their own column to the right of the map, stacked; phones get a row above it */
+@media (min-width:600px){
+  .fig-body{display:grid;grid-template-columns:minmax(0,1fr) 130px;column-gap:20px;align-items:start}
+  .fig-body .score{grid-template-columns:1fr;max-width:none}
+}
+@media (max-width:599px){ .fig-body{display:flex;flex-direction:column} .fig-body .score{order:-1;margin-bottom:10px} .score .scontext{grid-column:1/-1} }
+@media (min-width:600px) and (max-width:899px){ .fig-body .score .sb{font-size:26px} }
+.score .sb{font-family:"Source Sans 3",system-ui,sans-serif;font-weight:600;font-size:30px;line-height:1.15;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.score .su{font-weight:400;font-size:14px;color:var(--ink-2)}
+.score .sl{font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.35;text-wrap:balance}
+.score .scontext{font-size:12px;line-height:1.4;color:var(--ink-3);text-wrap:balance}
+@media (max-width:560px){ .score .sb{font-size:28px} .score .su{display:block;font-size:12px} }
+
+/* ---- the matrix of every measure ------------------------------------- */
+.scores{max-width:760px;margin:22px 0 0}
+.scores h3{font-size:15px;font-weight:600;margin:0 0 4px}
+.scores .snote{font-size:13px;color:var(--ink-3);margin:0 0 8px}
+.scores table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.4;color:var(--ink-2)}
+.scores th,.scores td{text-align:left;padding:4px 10px 4px 0;font-weight:400;vertical-align:top}
+.scores thead th{color:var(--ink-3);border-bottom:1px solid var(--rule);font-size:12px}
+.scores tbody th{color:var(--ink)}
+.scores .fa{color:var(--ink-3)}
+.scores tr.pick{cursor:pointer}
+.scores tr.pick:hover th{text-decoration:underline}
+.scores tr.cur th,.scores tr.cur td{font-weight:600;color:var(--ink)}
+@media (max-width:560px){ .scores table{font-size:12px} .scores .fa{display:block} }
+
+/* ---- story and method ------------------------------------------------ */
+.story{max-width:640px;margin:0 0 48px}
+.story p{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.55;margin:0 0 18px;color:var(--ink)}
+.story h3{font-family:"Source Sans 3",system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:26px 0 6px}
+.story h3:first-child{margin-top:0}
+.story .aside{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--ink-2);border-left:0;padding-left:0;margin-top:26px}
+.method{max-width:none;margin:40px 0 0;border-top:0;padding-top:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.method h3{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px;letter-spacing:0}
+.method p{margin:0 0 10px}
+.method a{color:var(--ink);text-decoration-color:var(--ink-3)}
+.method code{font-size:12px}
+.method b{color:var(--ink);font-weight:600}
+.method .cols{columns:2 320px;column-gap:40px}
+.method .cols p{margin:0 0 10px;break-inside:avoid}
+.method .credit{font-size:13px;color:var(--ink-3);margin:20px 0 0;font-style:italic}
 /* process disclosure: a quiet footnote to the method notes, one rule under the header, plain text */
 .disclosure{margin:18px 0 0;padding-top:0;max-width:760px}
 .disclosure .dnote{margin:0 0 8px;color:var(--ink-3);font-size:12px}
@@ -211,7 +190,6 @@ figcaption{border-top:1px solid var(--rule);padding-top:10px;margin-top:6px;max-
 .disclosure thead th:nth-child(1){width:31%}
 .disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:26%}
 .disclosure thead th:nth-child(4){width:17%}
-.disclosure .lv{font:inherit;color:inherit;background:none;padding:0}
 @media (max-width:560px){
   .disclosure table{font-size:11.5px}
   .disclosure th,.disclosure td{padding:3px 6px 3px 0;overflow-wrap:anywhere;hyphens:auto}
@@ -219,90 +197,11 @@ figcaption{border-top:1px solid var(--rule);padding-top:10px;margin-top:6px;max-
   .disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:24.5%}
   .disclosure thead th:nth-child(4){width:21%}
 }
-/* explorer: second-axis selector, score line and the matrix of every measure */
-.axisseg{margin-top:8px;align-items:center}
-#axisseg button{font-size:13px}
-.axisseg .seglabel{font-size:13px;color:var(--ink-3);margin-right:4px;padding:6px 0}
-.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:10px 0 0;max-width:640px}
-/* from 600px: the big numbers sit in their own column to the right of the map, stacked; phones get a row above it */
-@media (min-width:600px){
-  .fig-body{display:grid;grid-template-columns:minmax(0,1fr) 130px;column-gap:20px;align-items:start}
-  .fig-body .score{grid-template-columns:1fr;gap:18px;margin:8px 0 0;max-width:none}
+
+/* ---- phones ------------------------------------------------------------ */
+@media (max-width:640px){
+  .wrap{padding:28px 18px 52px}
+  .head h1{font-size:26px}
+  .story p{font-size:16px}
+  #zoomseg{width:100%}
 }
-/* narrow screens: a row above the map */
-@media (max-width:599px){ .fig-body{display:flex;flex-direction:column} .fig-body .score{order:-1;margin:10px 0 10px} .score .ss{min-height:1.4em} }   /* keeps the three columns level in the row */
-.score .stat{border-top:1px solid var(--rule);padding-top:6px}
-.score .sl{font-size:12px;color:var(--ink-3)}
-.score .sb{font-family:"Source Sans 3",system-ui,sans-serif;font-weight:600;font-size:30px;line-height:1.15;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
-.score .su{font-weight:400;font-size:14px;color:var(--ink-2)}
-.score .ss{font-size:12px;color:var(--ink-3)}
-@media (max-width:560px){ .score{gap:8px 12px} .score .sb{font-size:28px} .score .su{display:block;font-size:12px} }
-.scores{max-width:760px;margin:22px 0 0}
-.scores h3{font-size:15px;font-weight:600;margin:0 0 4px}
-.scores .snote{font-size:13px;color:var(--ink-3);margin:0 0 8px}
-.scores .scope{margin:0 0 8px}
-.scores table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.4;color:var(--ink-2)}
-.scores th,.scores td{text-align:left;padding:4px 10px 4px 0;font-weight:400;vertical-align:top}
-.scores thead th{color:var(--ink-3);border-bottom:1px solid var(--rule);font-size:12px}
-.scores tbody th{color:var(--ink)}
-.scores .fa{color:var(--ink-3)}
-.scores tr.pick{cursor:pointer}
-.scores tr.pick:hover th{text-decoration:underline}
-.scores tr.cur th,.scores tr.cur td{font-weight:600;color:var(--ink)}
-@media (max-width:560px){ .scores table{font-size:12px} .scores .fa{display:block} }
-.story h3{font-family:"Source Sans 3",system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:26px 0 6px}
-.story h3:first-child{margin-top:0}
-@media (min-width:600px) and (max-width:899px){ .fig-body .score .sb{font-size:26px} }
-/* minimal figure: two control rows, map with numbers, a quiet caption */
-.fig-top{margin-bottom:12px}
-figcaption .keyline{font-size:12px;color:var(--ink-3);gap:4px 16px;margin:0 0 4px}
-figcaption .keyline b{font-weight:600;color:var(--ink-2)}
-figcaption .keyline i{transform:scale(.85)}
-figcaption .source{font-size:12px;margin-top:2px}
-.fig-body .score{margin-top:0}
-.score .scontext{font-size:12px;line-height:1.4;color:var(--ink-3)}
-@media (max-width:599px){ .score .scontext{grid-column:1/-1} }
-.score .nw{white-space:nowrap}
-/* fewer lines: whitespace does the grouping; only the two table headers keep a rule */
-.score .stat{border-top:0;padding-top:0}
-.fig-body .score{gap:22px}
-figcaption{border-top:0;padding-top:0;margin-top:20px}
-.method{border-top:0;padding-top:0;margin-top:40px}
-.method .credit{border-top:0;padding-top:0;margin-top:20px}
-.story .aside{border-left:0;padding-left:0}
-/* the matrix's scope switch uses the same style as the "Compare with" row */
-.scores .scope{border:0;background:none;padding:0;border-radius:0;gap:6px}
-.scores .scope button{border-radius:0;padding:6px 12px;font-size:13px;color:var(--ink-2);font-weight:500}
-.scores .scope button:hover{color:var(--ink);background-color:var(--btnhover)}
-.scores .scope button[aria-pressed="true"],.scores .scope button[aria-pressed="true"]:hover{color:var(--ink);background-color:transparent;font-weight:600;box-shadow:inset 0 -2px 0 var(--ink)}
-.score .sl{margin-top:2px;line-height:1.35}
-.score .sl,.score .scontext{text-wrap:balance}
-/* the theory is the story: the "Test" row is primary (filled), the region row secondary (underlined) */
-.fig-top{flex-direction:column;align-items:stretch}
-#axisseg{order:0;margin-top:12px}
-#zoomseg{order:1;margin-top:6px;align-items:center}
-#axisseg button[aria-pressed="true"],#axisseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn);font-weight:600;box-shadow:none}
-#zoomseg button[aria-pressed="true"],#zoomseg button[aria-pressed="true"]:hover{color:var(--ink);background-color:transparent;font-weight:600;box-shadow:inset 0 -2px 0 var(--ink)}
-#zoomseg .seglabel{font-size:13px;color:var(--ink-3);margin-right:4px;padding:6px 0}
-#zoomseg,#axisseg{gap:2px}
-#zoomseg button,#axisseg button{padding:6px 10px}
-/* one control line: the theory dropdown, then the regions (selected filled) */
-.fig-top{flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px 18px}
-#axisseg{order:0;flex:0 0 auto;margin:0}
-#zoomseg{order:1;flex:1 1 auto;margin:0}
-#axissel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:600;color:var(--ink);background-color:var(--bg);
-  border:1.5px solid var(--ink);border-radius:0;padding:6px 36px 6px 10px;cursor:pointer;line-height:1.4;
-  background-image:linear-gradient(var(--ink),var(--ink)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231C2622' stroke-width='1.6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-size:1.5px 100%,12px 8px;background-position:right 26px center,right 8px center}
-#axissel:focus-visible{outline:2px solid var(--bi02);outline-offset:2px}
-#zoomseg button[aria-pressed="true"],#zoomseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn);font-weight:600;box-shadow:none}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #axissel{background-image:linear-gradient(var(--ink),var(--ink)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23E8ECEA' stroke-width='1.6'/%3E%3C/svg%3E")} }
-.fig-top{gap:8px 10px}
-#zoomseg button{padding:6px 8px}
-#axissel{padding-left:8px}
-/* a quieter dropdown: thin light border, no divider, small grey chevron, the buttons' weight */
-#axissel{font-weight:500;color:var(--ink);border:1px solid var(--rule);border-radius:3px;padding:6px 30px 6px 10px;background-color:transparent;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237A837D' stroke-width='1.4'/%3E%3C/svg%3E");
-  background-size:10px 6px;background-position:right 10px center}
-#axissel:hover{border-color:var(--ink-3)}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #axissel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A3ACA6' stroke-width='1.4'/%3E%3C/svg%3E")} }

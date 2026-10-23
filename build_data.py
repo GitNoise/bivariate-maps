@@ -40,6 +40,18 @@ LAG1 = {'024','894','454','508','716','072','516','710','426','748','450','834',
         '604','068','152','032','858','600','554','598','626','360','458','608',
         '704','764','116','418','104','144','076'}
 
+
+def lag_of(m):
+    """Years between an El Niño's onset and the harvest it affects, for this country."""
+    return 1 if m in LAG1 else 0
+
+
+def shortfall_pct(a, b):
+    """How much smaller (%) the mean El Niño harvest is than the mean neutral-year harvest, both measured against the
+    country's trend (a, b: anomalies in %). Positive = smaller. A plain percentage, easier to read than a gap in points."""
+    return -(((1 + st.mean(a) / 100) / (1 + st.mean(b) / 100)) - 1) * 100
+
+
 # Pre-split areas folded into their successors so series reach back to 1980
 SUCCESSOR = {'230': '231',   # Ethiopia PDR -> Ethiopia
              '736': '729'}   # Sudan (former) -> Sudan
@@ -74,12 +86,17 @@ def load_production(path):
     return out
 
 
+def baseline(series, y, lag):
+    """The five previous non-El Niño harvests (up to eight years back), the reference for year y."""
+    en = {e + lag for e, _, _ in EVENTS}
+    return [series[k] for k in range(y - 1, y - 9, -1) if k in series and k not in en][:5]
+
+
 def pct_dev(series, lag):
     """Harvest as % change against the mean of the five previous non-El Niño harvests."""
-    en = {e + lag for e, _, _ in EVENTS}
     out = {}
     for y in sorted(series):
-        base = [series[k] for k in range(y - 1, y - 9, -1) if k in series and k not in en][:5]
+        base = baseline(series, y, lag)
         if len(base) >= 3 and st.mean(base) > 0:
             out[y] = series[y] / st.mean(base) * 100 - 100
     return out
@@ -98,10 +115,10 @@ def lowess(xs, ys, frac=0.3):
     return out
 
 
-def trend_anomalies(series, first=1975):
+def trend_anomalies(series, first=1975, frac=0.3):
     """Each year's value as % above or below the country's long-term (LOWESS) trend."""
     yrs = [y for y in sorted(series) if y >= first and series[y] > 0]
-    tr = lowess(yrs, [series[y] for y in yrs])
+    tr = lowess(yrs, [series[y] for y in yrs], frac=frac)
     return {y: (series[y] / t - 1) * 100 for y, t in zip(yrs, tr) if t > 0}
 
 
@@ -175,10 +192,9 @@ def merge(hist, new):
 
 def deviations(series, lag):
     """Ratio minus the mean of the five previous non-El Niño harvest years (>=3 needed)."""
-    en = {e + lag for e, _, _ in EVENTS}
     out = {}
     for y in sorted(series):
-        base = [series[k] for k in range(y - 1, y - 9, -1) if k in series and k not in en][:5]
+        base = baseline(series, y, lag)
         if len(base) >= 3:
             out[y] = (series[y] - st.mean(base), st.mean(base))
     return out
@@ -189,7 +205,7 @@ def build(hist_path, new_path, prod_path=None):
     N, nn = load(new_path)
     names = {**hn, **nn}
     pix = merge(H, N)
-    R = {m: {y: ratio(d) for y, d in ys.items() if ratio(d) is not None} for m, ys in pix.items()}
+    R = {m: {y: v for y, d in ys.items() if (v := ratio(d)) is not None} for m, ys in pix.items()}
 
     # --- map: dependency today and change since the 1980s ------------------------
     world = {}
@@ -213,16 +229,14 @@ def build(hist_path, new_path, prod_path=None):
         yrs = [y for y in ser if 1980 <= y <= PROD_LAST]
         if m not in world or len(yrs) < 30 or st.mean(ser[y] for y in yrs) < 50000:
             continue
-        lag = 1 if m in LAG1 else 0
+        lag = lag_of(m)
         anom = {y: v for y, v in trend_anomalies({y: v for y, v in ser.items() if y <= PROD_LAST}).items() if y >= 1980}
         a = [v for y, v in anom.items() if y - lag in EL_NINO]
         b = [v for y, v in anom.items() if y - lag in NEUTRAL]
         if len(a) < 8 or len(b) < 7:
             continue
-        # shortfall as a plain percentage: how much smaller the average El Niño harvest is than the average neutral-year harvest
-        # (both measured against the country's trend); negative = smaller. Easier to read than a gap in percentage points.
-        rel = ((1 + st.mean(a) / 100) / (1 + st.mean(b) / 100) - 1) * 100
-        world[m].update(hgap=round(rel, 1), hen=round(st.mean(a), 1),
+        # hgap: the shortfall with the sign the map uses, negative = smaller El Niño harvests
+        world[m].update(hgap=round(-shortfall_pct(a, b), 1), hen=round(st.mean(a), 1),
                         hoth=round(st.mean(b), 1), hhits=sum(1 for v in a if v <= -10),
                         hnev=len(a), hnneu=len(b), hp=round(mann_whitney_p(a, b), 3),
                         # each El Niño harvest against the long-term trend, for the insights panel
@@ -234,7 +248,7 @@ def build(hist_path, new_path, prod_path=None):
     majors = [e for e in EVENTS if e[1] != 'W']
     countries = []
     for m, name in SMALL_MULTIPLES:
-        s = R[m]; lag = 1 if m in LAG1 else 0
+        s = R[m]; lag = lag_of(m)
         dev = deviations({y: v for y, v in s.items() if y <= LAST}, lag)
         hdev = pct_dev({y: v for y, v in P.get(m, {}).items() if 1970 <= y <= PROD_LAST}, lag) if P else {}
         bullets = []

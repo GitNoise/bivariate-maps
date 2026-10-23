@@ -6,7 +6,6 @@
 <title>When do cereal shortfalls become food crises?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -31,7 +30,7 @@
     </div>
     <figcaption>
       <p class="keyline keysym"><span><i class="fiswatch"></i>National food crisis (10%+ in IPC Crisis or worse)</span><span><i class="fiswatch minor"></i>Smaller crisis (5–10%) or UN appeal</span><span><i class="hatchswatch"></i>Shortfall may be chance</span><span><i class="nodataswatch"></i>Too little data</span></p>
-      <p class="keyline keydefs"><span id="axisdef"><b>Imports:</b>&nbsp;% of cereals, 2020–22</span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>
+      <p class="keyline keydefs"><span id="axisdef"></span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>
       <p class="source">Sources: FAO, via Our World in Data; NOAA.</p>
     </figcaption>
   </figure>
@@ -104,10 +103,18 @@
 </article>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="js/vendor/topojson-client.min.js"></script>
 <script src="js/data.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/axes.js"></script>
-<script src="js/chart.js"></script>
+<script src="js/classes.js"></script>
+<script src="js/geometry.js"></script>
+<script src="js/map.js"></script>
+<script src="js/watercolour.js"></script>
+<script src="js/labels.js"></script>
+<script src="js/legend.js"></script>
+<script src="js/tooltip.js"></script>
+<script src="js/explorer.js"></script>
 </body>
 </html>
