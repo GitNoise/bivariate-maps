@@ -4,20 +4,31 @@
 const SPARK_FROM = 1980, SPARK_TO = DATA.plast;   // both sparklines share one timeline
 
 // a sparkline for a yearly series (values from SPARK_FROM, null where missing), drawn through the years that have a value.
-// domain: [lo, hi] of the y-axis; enYears: El Niño harvest years, shaded
-function sparkline(values, {label, cls, domain, enYears}){
-  const points = values.map((v, i) => [SPARK_FROM + i, v]).filter(p => p[1] != null);
-  if(points.length < 5) return '';
-  const w = 236, h = 30;
-  const x = d3.scaleLinear().domain([SPARK_FROM, SPARK_TO]).range([1, w - 1]);
-  const y = d3.scaleLinear().domain(domain).range([h - 2, 2]).clamp(true);
+// The first and last values are marked with a dot and labelled (valueText: how a value reads); when years are missing
+// (poverty surveys), every value gets a small dot. domain: the fixed [lo, hi] of the y-axis (log: on a log scale);
+// cuts: class limits, drawn as faint dashed lines; enYears: El Niño harvest years, shaded
+function sparkline(values, {label, cls, domain, log, cuts = [], enYears, valueText}){
+  const points = values.map((v, i) => [SPARK_FROM + i, v]).filter(p => p[1] != null && (!log || p[1] > 0));
+  if(!points.length) return '';
+  const w = 236, h = 40, labelRoom = 30;   // room for the end values left and right of the line
+  const x = d3.scaleLinear().domain([SPARK_FROM, SPARK_TO]).range([labelRoom, w - labelRoom]);
+  const y = (log ? d3.scaleLog() : d3.scaleLinear()).domain(domain).range([h - 2, 2]).clamp(true);
+  const across = yv => `x1="${x(SPARK_FROM).toFixed(1)}" x2="${x(SPARK_TO).toFixed(1)}" y1="${y(yv).toFixed(1)}" y2="${y(yv).toFixed(1)}"`;
+  const limits = cuts.map(c => `<line ${across(c)} class="sp-cut"/>`).join('');
   const step = x(SPARK_FROM + 1) - x(SPARK_FROM);
   const bands = enYears.map(yr => `<rect x="${(x(yr) - step / 2).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="${h}" class="sp-en"/>`).join('');
-  const zero = domain[0] < 0 && domain[1] > 0 ? `<line x1="0" x2="${w}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" class="sp-zero"/>` : '';
+  const zero = domain[0] < 0 && domain[1] > 0 ? `<line ${across(0)} class="sp-zero"/>` : '';
   const line = d3.line().x(p => x(p[0])).y(p => y(p[1]))(points);
-  const years = `${points[0][0]}–${points[points.length - 1][0]}`;
+  const start = points[0], end = points[points.length - 1];
+  const dot = (p, r) => `<circle cx="${x(p[0]).toFixed(1)}" cy="${y(p[1]).toFixed(1)}" r="${r}" class="sp-dot ${cls}"/>`;
+  const sparse = points.length < end[0] - start[0] + 1;   // years missing
+  const dots = (sparse ? points.map(p => dot(p, 1.5)).join('') : '') + dot(start, 2.2) + (end === start ? '' : dot(end, 2.2));
+  // end values: the first to the left of the line, the last to the right
+  const value = (p, side) => `<text x="${(x(p[0]) + side * 5).toFixed(1)}" y="${y(p[1]).toFixed(1)}" dy="0.35em" text-anchor="${side < 0 ? 'end' : 'start'}" class="sp-val">${valueText(p[1])}</text>`;
+  const endValues = (end === start ? '' : value(start, -1)) + value(end, 1);
+  const years = end === start ? `${start[0]}` : `${start[0]}–${end[0]}`;
   return `<div class="sp"><div class="sp-cap"><span>${label}</span><span>${years}</span></div>`
-    + `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${bands}${zero}<path d="${line}" class="sp-line ${cls}"/></svg></div>`;
+    + `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${bands}${zero}${limits}<path d="${line}" class="sp-line ${cls}"/>${dots}${endValues}</svg></div>`;
 }
 
 // the selected measure's value for a country, as text
@@ -42,33 +53,49 @@ function tooltipHtml(id, r){
 
   const enYears = r.hev ? r.hev.map(e => e[0]) : [];
   let sparks = '';
-  if(r.han){   // harvest against trend: a symmetric axis, at least ±20% and at most ±60%
-    const reach = Math.min(60, Math.max(20, d3.max(r.han, v => v == null ? null : Math.abs(v))));
-    sparks += sparkline(r.han, {label: 'Harvest vs trend', cls: 'sp-hit', domain: [-reach, reach], enYears});
+  if(r.han){   // harvest against trend
+    const signed = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v)) + '%';
+    sparks += sparkline(r.han, {label: 'Harvest vs trend', cls: 'sp-hit', domain: HARVEST_RANGE, enYears, valueText: signed});
   }
   const series = measureSeries(id, r);
-  if(series){   // the selected measure: from 0 (or below), to at least its `floor`
-    const spec = MEASURES[AXIS];
-    sparks += sparkline(series, {label: spec.series, cls: 'sp-measure', domain: [Math.min(0, d3.min(series)), Math.max(spec.floor || 0, d3.max(series))], enYears});
+  let limits = false;
+  if(series){   // the selected measure, with the limits of its map classes
+    const spec = MEASURES[AXIS], cuts = AXES[AXIS].cuts || [];
+    const spark = sparkline(series, {label: spec.series, cls: 'sp-measure', domain: spec.range, log: spec.log, cuts, enYears, valueText: spec.short});
+    sparks += spark; limits = !!spark && cuts.length > 0;
   }
-  const key = sparks && enYears.length ? '<div class="sp-key"><i></i>El Niño years</div>' : '';
+  const keyItems = (enYears.length ? '<span><i></i>El Niño years</span>' : '') + (limits ? '<span><b></b>Class limits</span>' : '');
+  const key = sparks && keyItems ? `<div class="sp-key">${keyItems}</div>` : '';
   return `<b>${shortName(r)}</b>${row('El Niño harvest', harvest)}${row(AXES[AXIS].label, measureText(id, r))}${crisis}${sparks}${key}`;
 }
 
-// shown for countries with a colour or a crisis border, in the selected region. Rebuilt only when the country (or the measure)
-// changes; mouse moves just reposition it
-let tipKey = null;
+// shown for countries with a colour or a crisis border, in the selected region
+const hasTip = id => DATA.world[id] && (fillFor(id) || FOOD_INSEC[id]) && inRegion(id);
+
+// the tooltip's content, rebuilt only when the country or the measure changes. false: this country has no tooltip
+let tipKey = null, tipId = null;   // tipId: the country the tooltip is open for
+function fillTip(id){
+  if(!hasTip(id)){ hideTip(); return false; }
+  const key = id + '|' + AXIS;
+  if(key !== tipKey){ tipKey = key; tip.innerHTML = tooltipHtml(id, DATA.world[id]); }
+  tipId = id;
+  return true;
+}
+
+// on mouse moves: fill the tooltip for the country under the pointer and move it beside the pointer
 function showTip(ev, d){
-  const r = DATA.world[d.id];
-  if(!r || (!fillFor(d.id) && !FOOD_INSEC[d.id]) || !inRegion(d.id)){ tip.style.opacity = 0; return; }
-  const key = d.id + '|' + AXIS;
-  if(key !== tipKey){ tipKey = key; tip.innerHTML = tooltipHtml(d.id, r); }
+  if(!fillTip(d.id)) return;
   const box = mapbox.getBoundingClientRect();
   let x = ev.clientX - box.left + 14;
   const y = ev.clientY - box.top + 14;
   if(x + 300 > box.width) x = ev.clientX - box.left - 304;   // flip to the left near the right edge
   tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
 }
-const hideTip = () => { tip.style.opacity = 0; };
+function hideTip(){ tip.style.opacity = 0; tipId = null; }
+
+// after a change of measure or region (paint calls it): refill the open tooltip in place, without waiting for the mouse to move
+function refreshTip(){
+  if(tipId) fillTip(tipId);
+}
 paths.on('pointermove', showTip).on('pointerleave', hideTip);
 marks.on('pointermove', showTip).on('pointerleave', hideTip);

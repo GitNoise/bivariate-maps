@@ -32,6 +32,8 @@ Each country's figure and source note is listed in `TRACE.md`, section 6.
 | Extreme poverty | World Bank, Poverty and Inequality Platform | Our World in Data, `github.com/owid/poverty-data` (`data/proxies/pip.csv`) | 13 October 2026 |
 | Human Development Index | UNDP, Human Development Report | Our World in Data country table (`data/proxies/covid_latest.csv`); single recent value | 13 October 2026 |
 | Life expectancy | UN, World Population Prospects | Our World in Data country table (`data/proxies/covid_latest.csv`); single recent value | 13 October 2026 |
+| Human Development Index, yearly (tooltip only) | UNDP, Human Development Report | Our World in Data, `ourworldindata.org/grapher/human-development-index` (`data/proxies/human-development-index.csv`) | 23 October 2026 |
+| Life expectancy, yearly (tooltip only) | UN, World Population Prospects | Our World in Data, `ourworldindata.org/grapher/life-expectancy` (`data/proxies/life-expectancy.csv`) | 23 October 2026 |
 | Undernourishment (optional sixth axis) | FAO, prevalence of undernourishment (SDG 2.1.1) | Our World in Data, "Share of people who are undernourished" (`data/proxies/undernourishment.csv`, when added) | — |
 
 `analysis/fetch_proxies.sh` re-downloads the second-axis files.

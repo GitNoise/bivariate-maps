@@ -178,6 +178,7 @@ function paint(){
   document.querySelector('.fig').setAttribute('aria-label', region === 'world'
     ? 'Map: El Niño harvest shortfall and cereal import dependence, by country'
     : `Map: El Niño harvest shortfall and cereal import dependence, ${REGION_NAME[region]}`);
+  refreshTip();
   // labels: cleared here; drawn once the wash transition ends (washTo), or at once when no zoom is under way
   calloutG.selectAll('*').remove(); calloutG.style('opacity', 0);
   if(region !== 'world' && !zoomAnimating) drawCallouts(wcT);

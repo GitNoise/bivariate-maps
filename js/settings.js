@@ -7,22 +7,25 @@ const FOCUS = {type:'Polygon', coordinates:[[[-120,-48],[179.9,-48],[179.9,62],[
 const SMALL_OK = new Set(['426','748','222','332','214','188','591','558','340','320','454','626','084','308','662','670','780','044','052','174','480','690']);
 
 // ---- Classes: the shortfall cut-offs (%, smaller harvests in El Niño years), and the p-value from which a harvest signal is "weak" (hatched).
+// HARVEST_RANGE: the fixed y-range of the tooltip's harvest sparkline, % against trend.
 const SHORTFALL_CUTS = [5, 15];
 const WEAK_P = 0.1;
+const HARVEST_RANGE = [-50, 50];
 
-// ---- Second measures (classes and values in js/axes.js): the definition in the key line under the map, how a value reads in
-// the tooltip, and the label of its sparkline where the data has a yearly series (floor: the least top of its y-axis).
+// ---- Second measures (classes, values and series in js/axes.js): the definition in the key line under the map, how a value
+// reads in the tooltip, and its sparkline: label, end values (short), and a fixed y-range, the same for every country so the
+// lines can be compared (log: on a log scale). Values beyond the range are drawn at its edge; the end values stay exact.
 const MEASURES = {
   imports: {definition: '<b>Imports:</b>&nbsp;% of cereals, 2020–22',
-    format: v => v <= 0 ? 'net exporter' : `${Math.round(v)}% of cereals`, series: 'Imports, %', floor: 50},
+    format: v => v <= 0 ? 'net exporter' : `${Math.round(v)}% of cereals`, series: 'Imports, %', short: v => `${Math.round(v)}%`, range: [-50, 100]},   // below 0: net exporter
   gdp: {definition: '<b>Income:</b>&nbsp;GDP per person in US dollars, 2022; classes follow the World Bank’s income groups (4.5k, 1.1k)',
-    format: v => '$' + Math.round(v).toLocaleString('en') + ' per person', series: 'GDP per person, US$'},
+    format: v => '$' + Math.round(v).toLocaleString('en') + ' per person', series: 'GDP per person, US$ (log scale)', short: v => '$' + d3.format('.2~s')(v), range: [150, 60000], log: true},
   poverty: {definition: '<b>Extreme poverty:</b>&nbsp;% living below the international poverty line, latest survey',
-    format: v => `${Math.round(v)}% in extreme poverty`, series: 'Extreme poverty, %', floor: 50},
+    format: v => `${Math.round(v)}% in extreme poverty`, series: 'Extreme poverty, %', short: v => `${Math.round(v)}%`, range: [0, 100]},
   hdi: {definition: '<b>Human development:</b>&nbsp;UNDP Human Development Index; medium below 0.70, low below 0.55',
-    format: v => v.toFixed(3)},
+    format: v => v.toFixed(3), series: 'Human Development Index', short: v => v.toFixed(2), range: [0.3, 1]},
   life: {definition: '<b>Life expectancy:</b>&nbsp;years at birth; classes split at the median (74) and 65',
-    format: v => `${Math.round(v)} years`},
+    format: v => `${Math.round(v)} years`, series: 'Life expectancy, years', short: v => `${Math.round(v)}`, range: [40, 85]},
   undernourishment: {definition: '<b>Undernourishment:</b>&nbsp;% of people eating too little, FAO three-year average; classes at 10% and 25%. Chronic hunger makes any shock worse, El Niño or not',
     format: v => `${Math.round(v)}% undernourished`},
 };

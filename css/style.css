@@ -113,9 +113,16 @@ h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font
 .tip .sp-line{fill:none;stroke-width:1.3;stroke-linejoin:round;stroke-linecap:round}
 .tip .sp-hit{stroke:var(--bi20)}
 .tip .sp-measure{stroke:var(--bi02)}
+.tip .sp-dot{stroke:none}
+.tip .sp-dot.sp-hit{fill:var(--bi20)}
+.tip .sp-dot.sp-measure{fill:var(--bi02)}
+.tip .sp-val{font-size:10px;fill:var(--ink-2);font-variant-numeric:lining-nums tabular-nums}
 .tip .sp-en{fill:var(--ink);opacity:.07}
 .tip .sp-zero{stroke:var(--ink-3);stroke-width:.6;stroke-dasharray:2 2}
-.tip .sp-key{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ink-3);margin-top:5px}
+.tip .sp-cut{stroke:var(--bi02);stroke-width:.7;stroke-dasharray:3 2;opacity:.55}
+.tip .sp-key{display:flex;align-items:center;gap:14px;font-size:10.5px;color:var(--ink-3);margin-top:5px}
+.tip .sp-key span{display:inline-flex;align-items:center;gap:5px}
+.tip .sp-key b{width:12px;border-top:1px dashed var(--bi02);opacity:.8;display:inline-block}
 .tip .sp-key i{width:8px;height:10px;background:var(--ink);opacity:.12;display:inline-block}
 
 /* ---- caption: key line and source ------------------------------------ */

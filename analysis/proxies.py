@@ -54,12 +54,25 @@ def pov(iso, yr):
     ys = [y for y in POV.get(iso, {}) if y <= yr]
     return POV[iso][max(ys)] if ys else None
 
-# ---- human development and life expectancy: one recent value per country (Our World in Data) ----------------------
+# ---- human development and life expectancy: one recent value per country, and yearly series (Our World in Data) ----
 COV = {r['iso_code']: r for r in csv.DictReader(data_file('proxies', 'covid_latest.csv'))}
 
 def num(iso, col):
     v = COV.get(iso, {}).get(col, '')
     return float(v) if v not in ('', None) else None
+
+# the same two measures year by year (Our World in Data), for the tooltip's sparklines only: the classes and the test
+# keep the single recent values above
+def owid(path, column):
+    """An Our World in Data CSV as {ISO3: {year: value}}, countries only."""
+    out = {}
+    for r in csv.DictReader(data_file('proxies', path)):
+        if r['Code'] and not r['Code'].startswith('OWID') and r[column]:
+            out.setdefault(r['Code'], {})[int(r['Year'])] = float(r[column])
+    return out
+
+HDI_YEARLY = owid('human-development-index.csv', 'Human Development Index')
+LIFE_YEARLY = owid('life-expectancy.csv', 'Life expectancy')
 
 isos = [M49_ISO.get(m) for m in W.D if (m, 0.3) in W.AN]
 LE_MED = st.median([v for v in (num(i, 'life_expectancy') for i in isos if i) if v is not None])   # life expectancy, median over the tested countries
