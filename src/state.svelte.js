@@ -11,7 +11,7 @@ export const view = $state({measure: 'imports', region: 'world'});
 export const zoom = $state({current: zoomIdentity, settled: zoomIdentity, scale: 1, moving: true});
 
 // the tooltip: the country it shows, where (pixels within the map), and whether it is visible
-export const tip = $state({id: null, x: null, y: null, shown: false});
+export const tip = $state({id: null, x: 0, y: 0, shown: false});
 
 // the map's width on screen in pixels: set at the start and after a resize, for what depends on it (the legend's size)
 export const layout = $state({width: 0});

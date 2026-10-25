@@ -14,7 +14,7 @@ export const SHORTFALL_THRESHOLDS = [5, 15];
 export const WEAK_SIGNAL_P = 0.1;
 export const HARVEST_RANGE = [-50, 50];
 
-// ---- Second measures (classes, values and series in js/measures.js): the definition in the key line under the map, how a value
+// ---- Second measures (classes, values and series in src/measures.js): the definition in the key line under the map, how a value
 // reads in the tooltip, and its sparkline: label, end values (short), and a fixed y-range, the same for every country so the
 // lines can be compared (log: on a log scale). Values beyond the range are drawn at its edge; the end values stay exact.
 export const MEASURE_DISPLAY = {

@@ -8,14 +8,12 @@
     .map(([key, label]) => {
       const o = MEASURE_SCORES.world[key];
       const h = o['2015'].hits + o['2023'].hits, f = o['2015'].falseAlarms + o['2023'].falseAlarms, m = o['2015'].missed + o['2023'].missed;
-      return {key, label, rounds: [o['2015'], o['2023']], hitRate: Math.round(100 * h / (h + m)), precision: Math.round(100 * h / Math.max(1, h + f))};
+      return {key, label, pick: !!MEASURE_DATA[key], rounds: [o['2015'], o['2023']], hitRate: Math.round(100 * h / (h + m)), precision: Math.round(100 * h / Math.max(1, h + f))};
     });
-  const isMeasure = key => !!MEASURE_DATA[key];
 </script>
 
 {#each rows as row}
-  <tr class:cur={row.key === view.measure} class:pick={isMeasure(row.key)} data-axis={isMeasure(row.key) ? row.key : ''}
-      onclick={isMeasure(row.key) ? () => view.measure = row.key : null}>
+  <tr class:cur={row.key === view.measure} class:pick={row.pick} onclick={row.pick ? () => view.measure = row.key : null}>
     <th scope="row">{row.label}</th>
     {#each row.rounds as o}<td>{o.hits} of {o.hits + o.missed}<span class="fa"> · {o.falseAlarms} false</span></td>{/each}
     <td>{row.hitRate}%</td><td>{row.precision}%</td>

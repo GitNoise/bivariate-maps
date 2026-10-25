@@ -4,7 +4,7 @@
   import {MEASURE_DISPLAY, ZOOM_REGION_SHORT_NAME} from './settings.js';
   import {MEASURE_DATA} from './measures.js';
   import {ZOOM_REGIONS, REGION_TITLE} from './classes.js';
-  import {IS_PHONE_LAYOUT} from './map.js';
+  import {PHONE_QUERY, IS_PHONE_LAYOUT} from './map.js';
   import {sizeWash} from './watercolour.js';
   import {zoomTo} from './zoom.js';
   import Map from './Map.svelte';
@@ -15,23 +15,21 @@
   const figureLabel = $derived('Map: El Niño harvest shortfall and cereal import dependence, '
     + (view.region === 'world' ? 'by country' : REGION_TITLE[view.region]));
 
-  // start on the world view
-  onMount(() => {
+  // fit the wash and the legend to the map's width, and frame the region
+  function refit(region){
     sizeWash();
     layout.width = els.mapbox.clientWidth;
-    zoomTo('world');
-  });
+    zoomTo(region);
+  }
+  onMount(() => refit('world'));   // start on the world view
 
-  // on resize: re-frame, and re-size the wash and the legend for the new width. Crossing the phone breakpoint reloads,
-  // because the map's frame is set at load
+  // on resize: refit. Crossing the phone breakpoint reloads, because the map's frame is set at load
   let resizeTimer;
   function onresize(){
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if(window.matchMedia('(max-width: 640px)').matches !== IS_PHONE_LAYOUT){ location.reload(); return; }
-      sizeWash();
-      layout.width = els.mapbox.clientWidth;
-      zoomTo(view.region);
+      if(window.matchMedia(PHONE_QUERY).matches !== IS_PHONE_LAYOUT) location.reload();
+      else refit(view.region);
     }, 150);
   }
 </script>
@@ -47,9 +45,9 @@
     </div>
     <!-- the regions: short button labels, with the full name as the tooltip -->
     <div class="seg" id="zoomseg" role="group" aria-label="Zoom to region">
-      <button data-z="world" aria-pressed={view.region === 'world'} onclick={() => zoomTo('world')}>World</button>
+      <button aria-pressed={view.region === 'world'} onclick={() => zoomTo('world')}>World</button>
       {#each ZOOM_REGIONS as zone}
-        <button data-z={zone} aria-pressed={view.region === zone} title={REGION_TITLE[zone]} onclick={() => zoomTo(zone)}>{ZOOM_REGION_SHORT_NAME[zone] || REGION_TITLE[zone]}</button>
+        <button aria-pressed={view.region === zone} title={REGION_TITLE[zone]} onclick={() => zoomTo(zone)}>{ZOOM_REGION_SHORT_NAME[zone] || REGION_TITLE[zone]}</button>
       {/each}
     </div>
   </div>

@@ -52,24 +52,24 @@
       <g>
         {#each shapes as s}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <path d={s.d} class={'country' + (fillOf(s.id) && inSelectedRegion(s.id) ? ' hit' : '') + (inSelectedRegion(s.id) ? '' : ' dim')} style:fill="transparent"
+          <path d={s.d} class="country" class:hit={fillOf(s.id) && inSelectedRegion(s.id)} class:dim={!inSelectedRegion(s.id)} style:fill="transparent"
                 onpointermove={ev => showTooltip(ev, s.id)} onpointerleave={hideTooltip}/>
         {/each}
       </g>
       <!-- small-country dots are for the world view only; zoomed in, the country itself is visible (and has its label or arrow) -->
       <g>
-        {#each dots as s}
+        {#if view.region === 'world'}{#each dots as s}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <circle cx={s.c[0]} cy={s.c[1]} r={3.2 / zoom.scale} class="country smallmark" class:fi={!!NATIONAL_CRISES[s.id]} class:dim={!inSelectedRegion(s.id)}
-                  style:display={view.region === 'world' ? null : 'none'} style:fill={fillOf(s.id) || cssVar('--land')}
+          <circle cx={s.c[0]} cy={s.c[1]} r={3.2 / zoom.scale} class="country smallmark" class:fi={!!NATIONAL_CRISES[s.id]}
+                  style:fill={fillOf(s.id) || cssVar('--land')}
                   style:fill-opacity={isLowestClass(DATA.countries[s.id]) ? WATERCOLOUR.low : 1} style:stroke-dasharray={showsWeakShortfall(s.id) ? '1.5 1.5' : null}
                   onpointermove={ev => showTooltip(ev, s.id)} onpointerleave={hideTooltip}/>
-        {/each}
+        {/each}{/if}
       </g>
       <!-- hatching for a weak harvest signal -->
       <g style:pointer-events="none">
         {#each shapes as s}
-          <path d={s.d} fill={hatchOf(s.id)} style:display={showsWeakShortfall(s.id) ? null : 'none'} class:dim={!inSelectedRegion(s.id)}/>
+          {#if showsWeakShortfall(s.id)}<path d={s.d} fill={hatchOf(s.id)} class:dim={!inSelectedRegion(s.id)}/>{/if}
         {/each}
       </g>
       <!-- pencil borders: a tad stronger inside the selected region, a tad lighter outside it (Somaliland counts as Somalia);
@@ -77,7 +77,7 @@
            shared with a solid country is drawn solid) and dimmed outside the selected region -->
       <g style:pointer-events="none">
         {#each shapes as s}
-          <path d={s.d} class={'ink' + (NATIONAL_CRISES[s.id] ? ' fi' : '')} class:dim={!inSelectedRegion(countryIdOf(s.f))}
+          <path d={s.d} class="ink" class:fi={!!NATIONAL_CRISES[s.id]} class:dim={!inSelectedRegion(countryIdOf(s.f))}
                 class:inreg={view.region !== 'world' && inSelectedRegion(countryIdOf(s.f))}/>
         {/each}
         <path class="fi-outline minor dim" d={borders.smaller[1]}/>

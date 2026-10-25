@@ -9,7 +9,8 @@ import {shortfallClass, measureClass, cellColour, fillOf, REGION_MEMBER_SET, inS
 import {els} from './state.svelte.js';
 
 // ---- the frame and the shapes ----------------------------------------------------------------------------
-export const IS_PHONE_LAYOUT = window.matchMedia('(max-width: 640px)').matches;   // the map frame is set at load (see the resize handler)
+export const PHONE_QUERY = '(max-width: 640px)';   // the phone layout's breakpoint, as in css/style.css
+export const IS_PHONE_LAYOUT = window.matchMedia(PHONE_QUERY).matches;   // the map frame is set at load (see the resize handler)
 export const MAP_WIDTH = IS_PHONE_LAYOUT ? 700 : 1180, MAP_HEIGHT = IS_PHONE_LAYOUT ? 560 : 600;              // viewBox size
 
 export const countryShapes = topojson.feature(WORLD, WORLD.objects.countries);

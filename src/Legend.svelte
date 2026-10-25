@@ -2,7 +2,7 @@
      measure, top = highest risk. The NAMED_CELLS (the named countries) lift off the diamond as one piece, with a short,
      sharp shadow. After drawing, long axis titles shrink and the viewBox is cropped to the drawing. -->
 <script>
-  import {untrack} from 'svelte';
+  import {tick, untrack} from 'svelte';
   import {SHORTFALL_THRESHOLDS, WATERCOLOUR} from './settings.js';
   import {MEASURE_DATA} from './measures.js';
   import {cellColour, NAMED_CELLS} from './classes.js';
@@ -37,37 +37,35 @@
   ]);
 
   // fitting: an axis title longer than its edge (54 units) shrinks; then the viewBox is cropped to the drawing, and the
-  // legend shrinks on narrower maps, keeping its proportions
+  // legend shrinks on narrower maps, keeping its proportions. Measured again when the measure, the map's width or the
+  // web fonts change (the bold title's font can come late)
   let svg;
   let titleSize = $state({});   // font size by axis title text, for the titles that shrink
-  let fontLoads = $state(0);   // text is measured again whenever web fonts finish loading (the bold title's can come late)
-  document.fonts?.addEventListener('loadingdone', () => fontLoads++);
   let frame = $state({viewBox: '0 0 380 236', width: 380, height: 236});
+  let fontLoads = $state(0);
+  document.fonts?.addEventListener('loadingdone', () => fontLoads++);
   const legendScale = () => {
-    const w = layout.width || 1000;
     if(!legendOnMap()) return 1;
+    const w = layout.width || 1000;
     return w > 900 ? 1 : w > 680 ? 0.85 : w > 500 ? 0.72 : 0.6;
   };
-  const SVG_NS = 'http://www.w3.org/2000/svg';
+  // a title's natural length: written, measured, removed
+  function titleLength(text){
+    const e = svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'text'));
+    e.setAttribute('class', 'bl-ax'); e.textContent = text;
+    const length = e.getComputedTextLength();
+    e.remove();
+    return length;
+  }
   $effect(() => {
     const titles = texts.filter(t => t.cls === 'bl-ax').map(t => t.text);
-    fontLoads;
+    fontLoads; layout.width;
     untrack(() => {
-      const sizes = {};
-      titles.forEach(text => {   // its natural length: written, measured, removed
-        const e = svg.appendChild(document.createElementNS(SVG_NS, 'text'));
-        e.setAttribute('class', 'bl-ax'); e.textContent = text;
-        const L = e.getComputedTextLength(), max = 54;
-        e.remove();
-        if(L > max) sizes[text] = (10.5 * max / L).toFixed(2) + 'px';
-      });
-      titleSize = sizes;
+      titleSize = Object.fromEntries(titles.map(text => [text, titleLength(text)]).filter(([, L]) => L > 54)
+        .map(([text, L]) => [text, (10.5 * 54 / L).toFixed(2) + 'px']));
     });
-  });
-  $effect(() => {
-    titleSize; texts; layout.width;   // after the titles are sized, and when the map's width changes
-    untrack(() => {
-      // measured on a full-size copy (380 × 236, as first drawn), so the crop does not depend on the previous one
+    tick().then(() => {   // once the titles are sized. Text measures differently when drawn small, so the crop is measured
+      // on a full-size copy (380 × 236, as first drawn), not on the legend as cropped last time
       const copy = svg.cloneNode(true);
       copy.setAttribute('viewBox', '0 0 380 236'); copy.setAttribute('width', 380); copy.setAttribute('height', 236);
       svg.after(copy);

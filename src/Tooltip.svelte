@@ -9,8 +9,8 @@
   import Sparkline, {pointsOf} from './Sparkline.svelte';
   import {view, tip} from './state.svelte.js';
 
-  // a change of measure or region can leave the open tooltip on a country that no longer has one
-  $effect(() => { if(tip.shown && !hasTooltip(tip.id)) tip.shown = false; });
+  // shown over a country that has one: a change of measure or region can take it away
+  const visible = $derived(tip.shown && hasTooltip(tip.id));
 
   const r = $derived(tip.id && DATA.countries[tip.id]);
   const spec = $derived(MEASURE_DISPLAY[view.measure]);
@@ -26,8 +26,7 @@
   const signed = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v)) + '%';
 </script>
 
-<div class="tip" id="tip" style:left={tip.x == null ? null : tip.x + 'px'} style:top={tip.y == null ? null : tip.y + 'px'}
-     style:opacity={tip.x == null ? null : tip.shown ? 1 : 0}>
+<div class="tip" id="tip" style:left="{tip.x}px" style:top="{tip.y}px" style:opacity={visible ? 1 : 0}>
   {#if r}
     <b>{shortName(r)}</b>
     <div class="tr"><span>El Niño harvest</span><b>{#if r.harvestShortfall == null}not tested{:else if shortfall > 0}{shortfall}% smaller{#if isWeakSignal(r)}{' '}<i>weak signal</i>{/if}{:else}no shortfall{/if}</b></div>
