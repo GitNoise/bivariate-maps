@@ -1,11 +1,13 @@
 """Do proxies for coping capacity sharpen the warning? Prints the walk-forward scores of the shortfall alone, the shortfall
 with weak capacity on each of four proxies, and each proxy alone, within southern Africa and worldwide.
 
-    python3 analysis/coping_capacity.py
+    python analysis/coping_capacity.py
 """
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import pandas as pd
 
 from pipeline import measures, walkforward
 from pipeline.walkforward import SOUTHERN_AFRICA, flags_shortfall
@@ -14,31 +16,47 @@ from pipeline.walkforward import SOUTHERN_AFRICA, flags_shortfall
 # window (2014, 2022)
 PROXIES = {'GDP per person': 'gdp', 'Extreme poverty': 'poverty', 'Life expectancy': 'life', 'HDI': 'hdi'}
 
+# a rule takes the outcomes table and returns (flagged, no data): two boolean Series
 
-def weak_capacity(measure):
-    """(m49, year) -> True (weak), False, or None (no data)."""
-    def weak(m49, year):
-        cls = measures.values_known_in(m49, year)[measure][1]
-        return None if cls is None else cls >= 1
-    return weak
+
+def everyone(o):
+    return pd.Series(True, index=o.index), pd.Series(False, index=o.index)
+
+
+def shortfall_alone(o):
+    return flags_shortfall(o), pd.Series(False, index=o.index)
+
+
+def with_shortfall(measure):
+    """Flag the harvest measure's shortfall together with weak capacity."""
+    def rule(o):
+        cls = measures.classes_known_then(o, measure)
+        return flags_shortfall(o) & (cls.fillna(-1) >= 1), cls.isna()
+    return rule
+
+
+def capacity_alone(measure):
+    """Flag weak capacity, whatever the harvests."""
+    def rule(o):
+        cls = measures.classes_known_then(o, measure)
+        return cls.fillna(-1) >= 1, cls.isna()
+    return rule
 
 
 def score(rule, southern_africa_only):
-    """Score a rule(m49, shortfall, rnd) -> True, False or 'nodata', per round. Returns
-    [(period, hits, false alarms, missed, false-alarm names, missed names, no-data names)]."""
-    by_round = {rnd.period: [0, 0, 0, [], [], []] for rnd in walkforward.ROUNDS}
-    for o in walkforward.outcomes(SOUTHERN_AFRICA if southern_africa_only else None):
-        counts, name = by_round[o.round.period], o.country['name']
-        flag = rule(o.m49, o.shortfall, o.round)
-        if flag == 'nodata':
-            counts[5].append(name); flag = False
-        if flag and o.crisis:
-            counts[0] += 1
-        elif flag:
-            counts[1] += 1; counts[3].append(name)
-        elif o.crisis:
-            counts[2] += 1; counts[4].append(name)
-    return [(period, *counts) for period, counts in by_round.items()]
+    """Per round: (period, hits, false alarms, missed, false-alarm names, missed names, no-data names)."""
+    o = walkforward.outcomes()
+    if southern_africa_only:
+        o = o[o['m49'].isin(SOUTHERN_AFRICA)]
+    flagged, no_data = rule(o)
+    flagged = flagged & ~no_data
+    out = []
+    for rnd in walkforward.ROUNDS:
+        here = o['period'] == rnd.period
+        hit, false_alarm, missed = here & flagged & o['crisis'], here & flagged & ~o['crisis'], here & ~flagged & o['crisis']
+        out.append((rnd.period, int(hit.sum()), int(false_alarm.sum()), int(missed.sum()),
+                    list(o.loc[false_alarm, 'name']), list(o.loc[missed, 'name']), list(o.loc[here & no_data, 'name'])))
+    return out
 
 
 def line(label, result):
@@ -48,36 +66,19 @@ def line(label, result):
     return result
 
 
-def with_shortfall(weak):
-    """Flag the harvest measure's shortfall together with weak capacity."""
-    def rule(m49, shortfall, rnd):
-        w = weak(m49, rnd.last_harvest)
-        return 'nodata' if w is None else (flags_shortfall(m49, shortfall, rnd) and w)
-    return rule
-
-
-def alone(weak):
-    """Flag weak capacity, whatever the harvests."""
-    def rule(m49, shortfall, rnd):
-        w = weak(m49, rnd.last_harvest)
-        return 'nodata' if w is None else w
-    return rule
-
-
 if __name__ == '__main__':
     print(f"(life expectancy median = {measures.LIFE_EXPECTANCY_MEDIAN:.1f} years)\n")
     print(f"WITHIN SOUTHERN AFRICA ({len(SOUTHERN_AFRICA)} countries)")
-    line('Baseline: every country', score(lambda m49, shortfall, rnd: True, True))
-    line('Shortfall >= 5%', score(flags_shortfall, True))
+    line('Baseline: every country', score(everyone, True))
+    line('Shortfall >= 5%', score(shortfall_alone, True))
     detail = {}
     for name, measure in PROXIES.items():
-        weak = weak_capacity(measure)
-        detail[name] = line(f'Shortfall >= 5% + weak: {name}', score(with_shortfall(weak), True))
-        line(f'   weak {name} alone (no shortfall)', score(alone(weak), True))
+        detail[name] = line(f'Shortfall >= 5% + weak: {name}', score(with_shortfall(measure), True))
+        line(f'   weak {name} alone (no shortfall)', score(capacity_alone(measure), True))
     print("\nWORLDWIDE (all countries with harvest data)")
-    line('Shortfall >= 5%', score(flags_shortfall, False))
+    line('Shortfall >= 5%', score(shortfall_alone, False))
     for name, measure in PROXIES.items():
-        line(f'Shortfall >= 5% + weak: {name}', score(with_shortfall(weak_capacity(measure)), False))
+        line(f'Shortfall >= 5% + weak: {name}', score(with_shortfall(measure), False))
     print("\nDETAIL, southern Africa, shortfall + weak capacity:")
     for name, result in detail.items():
         for period, h, f, m, false_alarm_names, missed_names, no_data in result:

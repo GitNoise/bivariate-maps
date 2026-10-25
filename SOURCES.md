@@ -6,8 +6,8 @@ Primary sources first; where the data was taken from a mirror, that is noted. Ac
 
 | Data | Primary source | Copy used | Accessed |
 |---|---|---|---|
-| Cereal production, tonnes, 1961–2024 | FAO, FAOSTAT Crops and livestock products | Our World in Data, "Cereal production" (`data/cereal-production.csv`) | September 2026 |
-| Cereal imports, exports, production (import share) | FAO, FAOSTAT Food Balance Sheets (historic 1961–2013 and current 2010 onwards) | FAOSTAT bulk download; result in `data/cereal_import_dependency_ratio_1961_2022.csv` | September 2026 |
+| Cereal production, tonnes, 1961–2024 | FAO, FAOSTAT Crops and livestock products | Our World in Data, "Cereal production" (`data/raw/cereal-production.csv`) | September 2026 |
+| Cereal imports, exports, production (import share) | FAO, FAOSTAT Food Balance Sheets (historic 1961–2013 and current 2010 onwards) | FAOSTAT bulk download; result in `data/processed/cereal_import_dependency_ratio_1961_2022.csv` | September 2026 |
 | El Niño, La Niña and neutral years | NOAA Climate Prediction Center, Oceanic Niño Index (ONI v5) | as published by NOAA | September 2026 |
 | Check of the year classification | NOAA Climate Prediction Center, Relative Oceanic Niño Index (RONI v5) | values copied into `trace.py` | 13 October 2026 |
 | El Niño forecast | NOAA, ENSO diagnostic discussion, 8 October 2026; SADC, SARCOF-33 statement, August 2026 | as published | 9–13 October 2026 |
@@ -27,14 +27,14 @@ Each country's figure and source note is listed in `TRACE.md`, section 6.
 
 | Measure | Primary source | Copy used | Accessed |
 |---|---|---|---|
-| GDP, current US$ | World Bank, World Development Indicators (NY.GDP.MKTP.CD) | public mirror `github.com/datasets/gdp` (`data/proxies/gdp.csv`) | 13 October 2026 |
-| Population | World Bank, World Development Indicators (SP.POP.TOTL) | public mirror `github.com/datasets/population` (`data/proxies/population.csv`) | 13 October 2026 |
-| Extreme poverty | World Bank, Poverty and Inequality Platform | Our World in Data, `github.com/owid/poverty-data` (`data/proxies/pip.csv`) | 13 October 2026 |
-| Human Development Index | UNDP, Human Development Report | Our World in Data country table (`data/proxies/covid_latest.csv`); single recent value | 13 October 2026 |
-| Life expectancy | UN, World Population Prospects | Our World in Data country table (`data/proxies/covid_latest.csv`); single recent value | 13 October 2026 |
-| Human Development Index, yearly (tooltip only) | UNDP, Human Development Report | Our World in Data, `ourworldindata.org/grapher/human-development-index` (`data/proxies/human-development-index.csv`) | 23 October 2026 |
-| Life expectancy, yearly (tooltip only) | UN, World Population Prospects | Our World in Data, `ourworldindata.org/grapher/life-expectancy` (`data/proxies/life-expectancy.csv`) | 23 October 2026 |
-| Undernourishment | FAO, prevalence of undernourishment (SDG 2.1.1), three-year averages | Our World in Data, `ourworldindata.org/grapher/prevalence-of-undernourishment` (`data/proxies/undernourishment.csv`) | 25 October 2026 |
+| GDP, current US$ | World Bank, World Development Indicators (NY.GDP.MKTP.CD) | public mirror `github.com/datasets/gdp` (`data/raw/measures/gdp.csv`) | 13 October 2026 |
+| Population | World Bank, World Development Indicators (SP.POP.TOTL) | public mirror `github.com/datasets/population` (`data/raw/measures/population.csv`) | 13 October 2026 |
+| Extreme poverty | World Bank, Poverty and Inequality Platform | Our World in Data, `github.com/owid/poverty-data` (`data/raw/measures/pip.csv`) | 13 October 2026 |
+| Human Development Index | UNDP, Human Development Report | Our World in Data country table (`data/raw/measures/covid_latest.csv`); single recent value | 13 October 2026 |
+| Life expectancy | UN, World Population Prospects | Our World in Data country table (`data/raw/measures/covid_latest.csv`); single recent value | 13 October 2026 |
+| Human Development Index, yearly (tooltip only) | UNDP, Human Development Report | Our World in Data, `ourworldindata.org/grapher/human-development-index` (`data/raw/measures/human-development-index.csv`) | 23 October 2026 |
+| Life expectancy, yearly (tooltip only) | UN, World Population Prospects | Our World in Data, `ourworldindata.org/grapher/life-expectancy` (`data/raw/measures/life-expectancy.csv`) | 23 October 2026 |
+| Undernourishment | FAO, prevalence of undernourishment (SDG 2.1.1), three-year averages | Our World in Data, `ourworldindata.org/grapher/prevalence-of-undernourishment` (`data/raw/measures/undernourishment.csv`) | 25 October 2026 |
 
 `analysis/fetch_proxies.sh` re-downloads the second-axis files.
 

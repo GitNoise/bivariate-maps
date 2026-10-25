@@ -112,8 +112,8 @@ For each country: cereal production (FAO via Our World in Data), the long-term t
 
 - **El Niño harvests:** 14, averaging -17.6% against trend. **Neutral harvests:** 13, averaging +8.1%.
 - **Shortfall:** El Niño harvests are **23.8% smaller** than neutral ones (map: 23.8%). 
-- **Test (Mann-Whitney):** p = 0.020 in our code · 0.020 in scipy (same method) · 0.019 exact. Not hatched (p < 0.1).
-- **Trend check:** our LOWESS and statsmodels' differ by at most 0.000% of the trend.
+- **Test (Mann-Whitney, scipy):** p = 0.020 with the normal approximation the map uses · 0.019 exact. Not hatched (p < 0.1).
+- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on 15 of the 50 years: 30%, rounded up.
 - **Imports:** 77.0% of cereals (2020–22), from the map data. **Crisis border:** solid — Namibia (24%, 41%).
 
 ### Zimbabwe (M49 716) — harvest counted the year after the event
@@ -168,8 +168,8 @@ For each country: cereal production (FAO via Our World in Data), the long-term t
 
 - **El Niño harvests:** 14, averaging -22.7% against trend. **Neutral harvests:** 13, averaging +14.7%.
 - **Shortfall:** El Niño harvests are **32.6% smaller** than neutral ones (map: 32.6%). 
-- **Test (Mann-Whitney):** p = 0.006 in our code · 0.006 in scipy (same method) · 0.005 exact. Not hatched (p < 0.1).
-- **Trend check:** our LOWESS and statsmodels' differ by at most 0.000% of the trend.
+- **Test (Mann-Whitney, scipy):** p = 0.006 with the normal approximation the map uses · 0.005 exact. Not hatched (p < 0.1).
+- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on 15 of the 50 years: 30%, rounded up.
 - **Imports:** 40.8% of cereals (2020–22), from the map data. **Crisis border:** solid — Zimbabwe (26%, 32%).
 
 ### South Africa (M49 710) — harvest counted the year after the event
@@ -224,8 +224,8 @@ For each country: cereal production (FAO via Our World in Data), the long-term t
 
 - **El Niño harvests:** 14, averaging -15.2% against trend. **Neutral harvests:** 13, averaging +11.7%.
 - **Shortfall:** El Niño harvests are **24.1% smaller** than neutral ones (map: 24.1%). 
-- **Test (Mann-Whitney):** p = 0.003 in our code · 0.003 in scipy (same method) · 0.002 exact. Not hatched (p < 0.1).
-- **Trend check:** our LOWESS and statsmodels' differ by at most 0.000% of the trend.
+- **Test (Mann-Whitney, scipy):** p = 0.003 with the normal approximation the map uses · 0.002 exact. Not hatched (p < 0.1).
+- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on 15 of the 50 years: 30%, rounded up.
 - **Imports:** 2.9% of cereals (2020–22), from the map data. **Crisis border:** dashed — South Africa (~7%; government estimate accepted by the Global Report as equivalent).
 
 ### Malawi (M49 454) — harvest counted the year after the event
@@ -280,8 +280,8 @@ For each country: cereal production (FAO via Our World in Data), the long-term t
 
 - **El Niño harvests:** 14, averaging -10.0% against trend. **Neutral harvests:** 13, averaging -1.0%.
 - **Shortfall:** El Niño harvests are **9.1% smaller** than neutral ones (map: 9.1%). 
-- **Test (Mann-Whitney):** p = 0.382 in our code · 0.382 in scipy (same method) · 0.402 exact. Hatched on the map (p ≥ 0.1).
-- **Trend check:** our LOWESS and statsmodels' differ by at most 0.000% of the trend.
+- **Test (Mann-Whitney, scipy):** p = 0.382 with the normal approximation the map uses · 0.402 exact. Hatched on the map (p ≥ 0.1).
+- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on 15 of the 50 years: 30%, rounded up.
 - **Imports:** 2.0% of cereals (2020–22), from the map data. **Crisis border:** solid — Malawi (38%, 28%).
 
 ### Australia (M49 036)
@@ -336,8 +336,8 @@ For each country: cereal production (FAO via Our World in Data), the long-term t
 
 - **El Niño harvests:** 14, averaging -16.3% against trend. **Neutral harvests:** 13, averaging +2.3%.
 - **Shortfall:** El Niño harvests are **18.2% smaller** than neutral ones (map: 18.2%). 
-- **Test (Mann-Whitney):** p = 0.008 in our code · 0.008 in scipy (same method) · 0.007 exact. Not hatched (p < 0.1).
-- **Trend check:** our LOWESS and statsmodels' differ by at most 0.000% of the trend.
+- **Test (Mann-Whitney, scipy):** p = 0.008 with the normal approximation the map uses · 0.007 exact. Not hatched (p < 0.1).
+- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on 15 of the 50 years: 30%, rounded up.
 - **Imports:** -218.7% of cereals (2020–22), from the map data. **Crisis border:** none.
 
 ## 3. Do the recomputed numbers match the map?

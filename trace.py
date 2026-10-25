@@ -3,20 +3,21 @@
 
     python3 trace.py
 
-It traces data/cereal-production.csv, the production file the pipeline reads.
+It traces data/raw/cereal-production.csv, the production file the pipeline reads.
 
 Sections:
   1. The El Niño / La Niña / neutral years the map uses, against NOAA's Relative Oceanic Niño Index (RONI).
   2. Five countries step by step: raw production, trend, each year against trend, which years count, the shortfall, the
-     test and the colour class. It uses the pipeline's own functions, then checks them against scipy and statsmodels.
+     test and the colour class, with the pipeline's own functions.
   3. Whether the recomputed numbers match the ones on the map (js/data.js).
   4. The walk-forward test, its sensitivity to our choices, and a comparison with flagging every southern African country.
   5. Which countries' shortfalls depend on a single El Niño.
   6. Every crisis border, with its figure and source, as recorded in js/data.js.
-Needs scipy and statsmodels for the cross-checks in section 2.
 """
-import statistics
+import math, statistics
 from pathlib import Path
+
+from scipy.stats import mannwhitneyu
 
 from pipeline import crises, enso, harvests, walkforward
 from pipeline.paths import TRACE_MD
@@ -25,9 +26,21 @@ from pipeline.walkforward import LEAVE_ONE_OUT_YEARS, PRODUCTION, TESTED, combin
 TRACE_COUNTRIES = ['516', '716', '710', '454', '036']   # Namibia, Zimbabwe, South Africa, Malawi, Australia
 
 
+def country_anomalies(m49):
+    """One country's harvests against its trend, from the pipeline's table."""
+    anomalies = walkforward.anomalies()
+    return anomalies[anomalies['m49'] == m49]
+
+
 def full_shortfall(m49, el_nino_years=None, min_harvests=harvests.MAP_MIN_HARVESTS):
     """(shortfall %, El Niño anomalies, neutral anomalies) over all years, as on the map; None with too few harvests."""
-    return harvests.shortfall(walkforward.anomalies(m49), enso.harvest_lag(m49), min_harvests, el_nino_years)
+    mine = country_anomalies(m49)
+    table = harvests.shortfalls(mine, min_harvests, el_nino_years)
+    if m49 not in table.index:
+        return None
+    phased = harvests.by_phase(mine, el_nino_years)
+    return (float(table.at[m49, 'shortfall']), list(phased.loc[phased['phase'] == 'El Niño', 'vs_trend']),
+            list(phased.loc[phased['phase'] == 'neutral', 'vs_trend']))
 
 
 def section_years(out):
@@ -56,18 +69,19 @@ def section_years(out):
 
 
 def section_countries(out):
-    from scipy.stats import mannwhitneyu
-    from statsmodels.nonparametric.smoothers_lowess import lowess as statsmodels_lowess
     out('## 2. Five countries, step by step\n')
     out('For each country: cereal production (FAO via Our World in Data), the long-term trend (LOWESS, span 0.3, from 1975), '
         'each harvest as % above or below trend, and whether that harvest counts as El Niño, neutral or neither. '
         f'Countries whose main harvest comes the year after the event (`HARVEST_THE_YEAR_AFTER`, {len(enso.HARVEST_THE_YEAR_AFTER)} countries) are shifted by a year.\n')
     for m49 in TRACE_COUNTRIES:
-        country = walkforward.COUNTRIES.get(m49, {}); name = country.get('name', m49); tonnes = PRODUCTION[m49]
+        country = walkforward.COUNTRIES.get(m49, {}); name = country.get('name', m49)
         lag = enso.harvest_lag(m49)
-        years, trend = harvests.trend(tonnes)
-        trend_check = statsmodels_lowess([tonnes[y] for y in years], years, frac=harvests.TREND_SPAN, it=0, delta=0, return_sorted=False)
-        anomalies = walkforward.anomalies(m49)
+        fitted = PRODUCTION[(PRODUCTION['m49'] == m49) & PRODUCTION['year'].between(harvests.TREND_FROM, harvests.LAST_HARVEST_YEAR)
+                            & (PRODUCTION['tonnes'] > 0)]
+        years, tonnes = fitted['year'].tolist(), dict(zip(fitted['year'], fitted['tonnes']))
+        trend = harvests.trend(fitted['year'].to_numpy(), fitted['tonnes'].to_numpy())
+        window = max(harvests.MIN_TREND_WINDOW, math.ceil(harvests.TREND_SPAN * len(years)))
+        anomalies = dict(zip(country_anomalies(m49)['year'], country_anomalies(m49)['vs_trend']))
         out(f'### {name} (M49 {m49}){" — harvest counted the year after the event" if lag else ""}\n')
         out('| Harvest year | Production (t) | Trend (t) | vs trend | ENSO year it follows | Counts as |')
         out('|---|---|---|---|---|---|')
@@ -78,16 +92,14 @@ def section_countries(out):
             counts_as = p if p in ('El Niño', 'neutral') else '—'
             out(f'| {year} | {tonnes[year]:,.0f} | {t:,.0f} | {anomalies[year]:+.1f}% | {event_year} ({p}) | {counts_as} |')
         shortfall, el_nino, neutral = full_shortfall(m49)
-        p_ours = harvests.mann_whitney_p(el_nino, neutral)
-        p_scipy = mannwhitneyu(el_nino, neutral, alternative='two-sided', method='asymptotic', use_continuity=False).pvalue
+        p = harvests.mann_whitney_p(el_nino, neutral)
         p_exact = mannwhitneyu(el_nino, neutral, alternative='two-sided', method='exact').pvalue
-        trend_gap = max(abs(x - z) / z * 100 for x, z in zip(trend, trend_check))
         out(f'\n- **El Niño harvests:** {len(el_nino)}, averaging {statistics.mean(el_nino):+.1f}% against trend. **Neutral harvests:** {len(neutral)}, averaging {statistics.mean(neutral):+.1f}%.')
         out(f'- **Shortfall:** El Niño harvests are **{shortfall:.1f}% smaller** than neutral ones '
             f'(map: {country.get("harvestShortfall", float("nan")):.1f}%). ')
-        out(f'- **Test (Mann-Whitney):** p = {p_ours:.3f} in our code · {p_scipy:.3f} in scipy (same method) · {p_exact:.3f} exact. '
-            f'{"Hatched on the map (p ≥ 0.1)." if p_ours >= 0.1 else "Not hatched (p < 0.1)."}')
-        out(f'- **Trend check:** our LOWESS and statsmodels\' differ by at most {trend_gap:.3f}% of the trend.')
+        out(f'- **Test (Mann-Whitney, scipy):** p = {p:.3f} with the normal approximation the map uses · {p_exact:.3f} exact. '
+            f'{"Hatched on the map (p ≥ 0.1)." if p >= 0.1 else "Not hatched (p < 0.1)."}')
+        out(f'- **Trend:** LOWESS (statsmodels, no robustness iterations), each local fit on {window} of the {len(years)} years: 30%, rounded up.')
         border = ('solid — ' + crises.NATIONAL_TABLE[m49][1] if m49 in crises.NATIONAL_TABLE
                   else 'dashed — ' + crises.SMALLER_TABLE[m49][1] if m49 in crises.SMALLER_TABLE else 'none')
         out(f'- **Imports:** {country.get("importShare")}% of cereals (2020–22), from the map data. **Crisis border:** {border}.\n')
@@ -152,7 +164,7 @@ def section_walkforward(out):
         'Southern Africa here means Angola, Botswana, Eswatini, Lesotho, Madagascar, Malawi, Mozambique, Namibia, South Africa, Zambia and Zimbabwe.\n')
     rules = (('Harvest measure (shortfall ≥ 5%)', walkforward.flags_shortfall),
              ('Baseline: every southern African country', walkforward.flags_southern_africa),
-             ('Southern Africa and shortfall ≥ 5%', lambda *outcome: walkforward.flags_southern_africa(*outcome) and walkforward.flags_shortfall(*outcome)))
+             ('Southern Africa and shortfall ≥ 5%', lambda o: walkforward.flags_southern_africa(o) & walkforward.flags_shortfall(o)))
     out('| Rule | Round | Flagged | Hits | False alarms | Misses | Hit rate | Precision |')
     out('|---|---|---|---|---|---|---|---|')
     for label, rule in rules:

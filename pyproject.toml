@@ -1,0 +1,13 @@
+[project]
+name = "el-nino-food-crises"
+version = "1.0.0"
+description = "Builds the data for the El Niño and food crises map: harvest shortfalls, second measures, walk-forward test."
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
+]
+
+[tool.setuptools]
+packages = ["pipeline"]

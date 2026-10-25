@@ -1,7 +1,7 @@
 #!/bin/sh
-# Downloads the second-axis source data into data/proxies/. Files as fetched on 13 October 2026 are already in the repository.
+# Downloads the second-axis source data into data/raw/measures/. Files as fetched on 13 October 2026 are already in the repository.
 # Primary sources are named on each line; the URLs are public mirrors of them.
-cd "$(dirname "$0")/../data/proxies" || exit 1
+cd "$(dirname "$0")/../data/raw/measures" || exit 1
 curl -sL -o gdp.csv          https://raw.githubusercontent.com/datasets/gdp/main/data/gdp.csv                        # World Bank WDI: GDP, current US$ (NY.GDP.MKTP.CD)
 curl -sL -o population.csv   https://raw.githubusercontent.com/datasets/population/main/data/population.csv          # World Bank WDI: population (SP.POP.TOTL)
 curl -sL -o pip.csv          https://raw.githubusercontent.com/owid/poverty-data/main/datasets/pip_dataset.csv        # World Bank Poverty and Inequality Platform, via Our World in Data

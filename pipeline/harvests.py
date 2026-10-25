@@ -3,13 +3,18 @@
 The shortfall: each harvest is measured against the country's long-term trend (LOWESS); El Niño harvests are then compared
 with neutral-year harvests. Production, not yield, because failed fields go unharvested and are part of the food lost.
 """
-import csv, math, statistics
+import math
+
+import pandas as pd
+from scipy.stats import mannwhitneyu
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 from . import enso
 
 TREND_FROM = 1975           # the trend is fitted from 1975, so 1980 has years on both sides
 LAST_HARVEST_YEAR = 2024
 TREND_SPAN = 0.3            # the LOWESS span the map uses; analysis/robustness.py also tries 0.75
+MIN_TREND_WINDOW = 4
 MAP_MIN_HARVESTS = (8, 7)   # El Niño and neutral harvests a country needs for a shortfall on the map
 
 # ISO3 codes (Our World in Data) -> UN M49 codes (FAO, and the map); pre-split areas fold into their successors
@@ -18,83 +23,66 @@ ISO3_TO_M49.update({'OWID_ERE': '231', 'OWID_SDN': '729'})   # Ethiopia PDR -> E
 
 
 def load_production(path):
-    """Cereal production in tonnes, from the Our World in Data CSV, as {m49: {year: tonnes}}."""
-    out = {}
-    for row in csv.DictReader(open(path, encoding='utf-8')):
-        m49 = ISO3_TO_M49.get(row['Code'])
-        value = row.get('Cereals - Production (tonnes)') or ''
-        if not m49 or not value:
-            continue
-        year = int(row['Year'])
-        if row['Code'].startswith('OWID_') and year in out.get(m49, {}):
-            continue   # the successor's own figure wins where both exist
-        out.setdefault(m49, {})[year] = float(value)
-    return out
+    """Cereal production from the Our World in Data CSV: a table of m49, year, tonnes, sorted by country and year.
+    A pre-split area's figures fill its successor's years only where the successor has none of its own."""
+    raw = pd.read_csv(path, dtype={'Code': str})
+    raw = raw.assign(m49=raw['Code'].map(ISO3_TO_M49), tonnes=raw['Cereals - Production (tonnes)'],
+                     predecessor=raw['Code'].str.startswith('OWID_', na=False))
+    production = (raw.dropna(subset=['m49', 'tonnes'])
+                     .sort_values('predecessor', kind='stable')   # successors' own rows first, so they win the duplicates
+                     .drop_duplicates(['m49', 'Year'])
+                     .rename(columns={'Year': 'year'}))
+    return production[['m49', 'year', 'tonnes']].sort_values(['m49', 'year']).reset_index(drop=True)
 
 
-def lowess(xs, ys, frac=TREND_SPAN):
-    """Local linear regression with tricube weights: the long-term trend of a series, one value per x."""
-    n = len(xs)
-    k = max(4, int(math.ceil(frac * n)))   # the points in each local fit
-    out = []
-    for x0 in xs:
-        h = sorted(abs(x - x0) for x in xs)[k - 1] or 1
-        w = [(1 - min(1, abs(x - x0) / h) ** 3) ** 3 for x in xs]
-        sw = sum(w)
-        mx = sum(wi * x for wi, x in zip(w, xs)) / sw
-        my = sum(wi * y for wi, y in zip(w, ys)) / sw
-        sxx = sum(wi * (x - mx) ** 2 for wi, x in zip(w, xs))
-        sxy = sum(wi * (x - mx) * (y - my) for wi, x, y in zip(w, xs, ys))
-        out.append(my + (sxy / sxx if sxx else 0) * (x0 - mx))
-    return out
+def trend(years, tonnes, span=TREND_SPAN):
+    """The long-term trend of a series: LOWESS (statsmodels, no robustness iterations) with each local fit on `span` of the
+    years, rounded up, and at least MIN_TREND_WINDOW years."""
+    window = max(MIN_TREND_WINDOW, math.ceil(span * len(years)))
+    return lowess(tonnes, years, frac=window / len(years), it=0, delta=0, return_sorted=False)
 
 
-def trend(production, frac=TREND_SPAN):
-    """The country's long-term trend: (years, trend values), fitted on its harvests from TREND_FROM to LAST_HARVEST_YEAR."""
-    years = [y for y in sorted(production) if TREND_FROM <= y <= LAST_HARVEST_YEAR and production[y] > 0]
-    return years, lowess(years, [production[y] for y in years], frac=frac)
+def against_trend(production, span=TREND_SPAN):
+    """Each harvest as % above or below its country's trend, fitted on the harvests from TREND_FROM to LAST_HARVEST_YEAR:
+    a table of m49, year, tonnes, trend, vs_trend (%), from 1980."""
+    fitted = production[production['year'].between(TREND_FROM, LAST_HARVEST_YEAR) & (production['tonnes'] > 0)].copy()
+    fitted['trend'] = pd.concat([pd.Series(trend(c['year'].to_numpy(), c['tonnes'].to_numpy(), span), index=c.index)
+                                 for _, c in fitted.groupby('m49', sort=False)])
+    fitted = fitted[(fitted['trend'] > 0) & (fitted['year'] >= enso.FIRST_YEAR)]
+    return fitted.assign(vs_trend=(fitted['tonnes'] / fitted['trend'] - 1) * 100).reset_index(drop=True)
 
 
-def harvest_anomalies(production, frac=TREND_SPAN):
-    """Each harvest from 1980 to LAST_HARVEST_YEAR as % above or below the country's trend: {year: %}."""
-    years, values = trend(production, frac)
-    return {y: (production[y] / t - 1) * 100 for y, t in zip(years, values) if t > 0 and y >= enso.FIRST_YEAR}
-
-
-def shortfall_pct(el_nino, neutral):
+def shortfall_pct(el_nino_mean, neutral_mean):
     """How much smaller (%) the mean El Niño harvest is than the mean neutral-year harvest, both measured against the
-    trend (lists of anomalies in %). Positive = smaller. A plain percentage, easier to read than a gap in points."""
-    return -(((1 + statistics.mean(el_nino) / 100) / (1 + statistics.mean(neutral) / 100)) - 1) * 100
+    trend (means of % anomalies). Positive = smaller. A plain percentage, easier to read than a gap in points."""
+    return -(((1 + el_nino_mean / 100) / (1 + neutral_mean / 100)) - 1) * 100
 
 
-def shortfall(anomalies, lag, min_harvests, el_nino_years=None, neutral_years=None):
-    """(shortfall %, El Niño anomalies, neutral anomalies) for a country, or None with fewer harvests than
-    min_harvests = (El Niño, neutral). The harvests are the ones that follow El Niño and neutral years, shifted by the
-    country's harvest lag; the years default to the map's classification."""
+def by_phase(anomalies, el_nino_years=None, neutral_years=None):
+    """The harvests that follow El Niño and neutral years, each shifted by its country's harvest lag: the anomalies table
+    with a `phase` column ('El Niño' or 'neutral'); other harvests are dropped. Years default to the map's."""
     el_nino_years = enso.EL_NINO_YEARS if el_nino_years is None else el_nino_years
     neutral_years = enso.NEUTRAL_YEARS if neutral_years is None else neutral_years
-    el_nino = [v for y, v in anomalies.items() if y - lag in el_nino_years]
-    neutral = [v for y, v in anomalies.items() if y - lag in neutral_years]
-    if len(el_nino) < min_harvests[0] or len(neutral) < min_harvests[1]:
-        return None
-    return shortfall_pct(el_nino, neutral), el_nino, neutral
+    event_year = anomalies['year'] - anomalies['m49'].map(enso.harvest_lag)
+    phase = pd.Series(None, index=anomalies.index, dtype='object')
+    phase[event_year.isin(el_nino_years)] = 'El Niño'
+    phase[event_year.isin(neutral_years)] = 'neutral'
+    return anomalies.assign(phase=phase).dropna(subset=['phase'])
 
 
-def mann_whitney_p(a, b):
-    """Two-sided Mann-Whitney U test, normal approximation (standard library only): could the El Niño and neutral harvests
-    come from the same distribution? The map hatches a shortfall with p of 0.1 or more."""
-    values = sorted([(v, 0) for v in a] + [(v, 1) for v in b])
-    ranks, i = [0.0] * len(values), 0
-    while i < len(values):   # tied values share their mean rank
-        j = i
-        while j + 1 < len(values) and values[j + 1][0] == values[i][0]:
-            j += 1
-        for k in range(i, j + 1):
-            ranks[k] = (i + j) / 2 + 1
-        i = j + 1
-    rank_sum_a = sum(r for r, (_, group) in zip(ranks, values) if group == 0)
-    n1, n2 = len(a), len(b)
-    u = rank_sum_a - n1 * (n1 + 1) / 2
-    sd = math.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
-    z = (u - n1 * n2 / 2) / sd if sd else 0
-    return math.erfc(abs(z) / math.sqrt(2))
+def shortfalls(anomalies, min_harvests, el_nino_years=None, neutral_years=None):
+    """Per country, indexed by m49: its numbers of El Niño and neutral harvests (n_el_nino, n_neutral), their mean
+    anomalies (el_nino, neutral) and its shortfall (%), for the countries with at least min_harvests = (El Niño, neutral)."""
+    stats = (by_phase(anomalies, el_nino_years, neutral_years)
+             .groupby(['m49', 'phase'])['vs_trend'].agg(['count', 'mean']).unstack('phase'))
+    table = pd.DataFrame({'n_el_nino': stats[('count', 'El Niño')], 'n_neutral': stats[('count', 'neutral')],
+                          'el_nino': stats[('mean', 'El Niño')], 'neutral': stats[('mean', 'neutral')]})
+    table = table[(table['n_el_nino'] >= min_harvests[0]) & (table['n_neutral'] >= min_harvests[1])].copy()
+    table['shortfall'] = shortfall_pct(table['el_nino'], table['neutral'])
+    return table
+
+
+def mann_whitney_p(el_nino, neutral):
+    """Two-sided Mann-Whitney U test, normal approximation without continuity correction (scipy): could the El Niño and
+    neutral harvests come from the same distribution? The map hatches a shortfall with p of 0.1 or more."""
+    return mannwhitneyu(el_nino, neutral, alternative='two-sided', method='asymptotic', use_continuity=False).pvalue
