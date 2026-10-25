@@ -1,5 +1,5 @@
 :root{
-  --text:680px;   /* the one text column: standfirst, score table, story, method notes; the figure alone runs full width */
+  --text:680px;   /* the text column, centred; the figure alone runs wider, by the same amount on both sides */
   --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
   --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6; --dep:#2F6380;
   --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
@@ -20,14 +20,14 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background-color:var(--bg);color:var(--ink);font-family:"Source Sans 3","Source Sans Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 main.page{display:block;max-width:1100px;margin:0 auto}   /* the page never grows wider than this; the map's height follows */
 .wrap{position:relative;max-width:1340px;margin:0;padding:48px 28px 72px}
+.wrap > :not(.fig){max-width:var(--text);margin-left:auto;margin-right:auto}
 .pubdate{display:block;margin:0 0 10px;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;color:var(--ink-3);font-variant-numeric:lining-nums tabular-nums;letter-spacing:.01em}
 h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,4.4vw,48px);line-height:1.05;letter-spacing:-.01em;margin:0 0 14px;max-width:20ch}
 
 /* ---- editorial layout ---------------------------------------------- */
-.head{max-width:900px;margin:0 0 28px}
-.head .standfirst{max-width:var(--text)}
+.head{margin:0 0 28px}
 .head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
-.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;max-width:36em;text-wrap:pretty}
+.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;text-wrap:pretty}
 .fig{margin:0 0 44px}
 /* one control line: the theory dropdown, then the regions (selected filled) */
 .fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:12px}
@@ -159,7 +159,7 @@ figcaption .source{font-size:12px;margin-top:2px}
 @media (max-width:560px){ .score .sb{font-size:28px} .score .su{display:block;font-size:12px} }
 
 /* ---- the matrix of every measure ------------------------------------- */
-.scores{max-width:var(--text);margin:22px 0 0}
+.scores{margin:22px 0 0}
 .scores h3{font-size:15px;font-weight:600;margin:0 0 4px}
 .scores .snote{font-size:13px;color:var(--ink-3);margin:0 0 8px}
 .scores table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.4;color:var(--ink-2)}
@@ -173,12 +173,12 @@ figcaption .source{font-size:12px;margin-top:2px}
 @media (max-width:560px){ .scores table{font-size:12px} .scores .fa{display:block} }
 
 /* ---- story and method ------------------------------------------------ */
-.story{max-width:var(--text);margin:0 0 48px}
+.story{margin:0 0 48px}
 .story p{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.55;margin:0 0 18px;color:var(--ink)}
 .story h3{font-family:"Source Sans 3",system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:26px 0 6px}
 .story h3:first-child{margin-top:0}
 .story .aside{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--ink-2);border-left:0;padding-left:0;margin-top:26px}
-.method{max-width:var(--text);margin:40px 0 0;border-top:0;padding-top:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.method{margin:40px 0 0;border-top:0;padding-top:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .method h3{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px;letter-spacing:0}
 .method p{margin:0 0 10px}
 .method a{color:var(--ink);text-decoration-color:var(--ink-3)}
