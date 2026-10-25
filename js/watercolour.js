@@ -78,8 +78,7 @@ function buildWash(z, t){
     // let the pigment flow out past the border by WATERCOLOUR.spill of the shape's size: outer rings grow, holes shrink.
     // d3.polygonArea is signed, so an outer ring and its holes wind opposite ways
     const area = d3.polygonArea;
-    const largest = rings.reduce((m, r) => Math.abs(area(r)) > Math.abs(area(m)) ? r : m, rings[0] || []);
-    const outerSign = Math.sign(area(largest));
+    const outerSign = Math.sign(area(largestRing(rings) || []));
     rings = rings.map(r => {
       const cx = d3.mean(r, p => p[0]), cy = d3.mean(r, p => p[1]);
       const g = Math.sign(area(r)) === outerSign ? 1 + WATERCOLOUR.spill : 1 / (1 + WATERCOLOUR.spill);
@@ -222,24 +221,22 @@ let washCache = {}, washTransform = d3.zoomIdentity, washesShown = null;   // wa
 function washesForWidth(){
   const id = 'all@' + Math.round(mapbox.clientWidth);
   if(!washCache[id]){
-    const deepestZoom = Math.max(...Object.keys(REGION_MEMBERS).filter(r => REGION_MEMBERS[r]).map(r => frameOf(r).k));
+    const deepestZoom = Math.max(...ZOOM_REGIONS.map(zone => frameOf(zone).k));
     washCache = {[id]: buildWash(deepestZoom, null)};
   }
   return washCache[id];
 }
 
-// zoom the map and its wash to transform t over dur ms; the labels are drawn when it ends
+// zoom the map and its wash to transform t over dur ms (zoomTo has cleared the labels and set isZooming); the labels are drawn when it ends
 function zoomWashTo(t, dur){
   const target = washesForWidth();
   const iz = d3.interpolate([washTransform.x, washTransform.y, washTransform.k], [t.x, t.y, t.k]);
-  isZooming = true; labelLayer.selectAll('*').remove(); labelLayer.style('opacity', 0);
   d3.select(washCanvas).interrupt().transition().duration(dur).ease(d3.easeCubicInOut)
     .tween('wash', () => q => {
       const [x, y, kk] = iz(q), T = d3.zoomIdentity.translate(x, y).scale(kk);
       zoomLayer.attr('transform', T.toString());
       drawWash(T, target);
     })
-    .on('start', () => { isZooming = true; })
     .on('end interrupt', () => {
       washTransform = t; washesShown = target;
       zoomLayer.attr('transform', t.toString());

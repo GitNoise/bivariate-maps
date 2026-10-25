@@ -4,6 +4,7 @@
     enso         which years count as El Niño, La Niña and neutral, and when each country's harvest follows an event
     harvests     cereal production, its long-term trend, and the El Niño harvest shortfall
     imports      FAO food balance sheets and the cereal import dependency ratio
+    countries    the countries on the map, the southern Africa list, cereal production: shared by the modules below
     measures     the second measures (imports, income, poverty, HDI, life expectancy, undernourishment) and their classes
     page_files   reading and writing the page's data files in js/
     crises       the recorded food crises, from js/data.js

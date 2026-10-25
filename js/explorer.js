@@ -2,17 +2,18 @@
 // the table of every measure, and starting the page. Loaded last.
 
 // ---- score line: three big numbers for the selected measure, counted for the countries in view -----------------
-// hits, false alarms and misses for a measure over a set of countries, both rounds (2015–16, 2023–24) together
-function scoreOf(axis, ids){
+// hits, false alarms and misses for a theory over a set of countries, both rounds (2015–16, 2023–24) together.
+// theory: a measure, 'none' (the shortfall alone) or 'region' (every southern African country)
+function scoreOf(theory, ids){
   let h = 0, f = 0, m = 0;
   ids.forEach(id => {
     const t = TEST_RESULTS[id];
     if(!t) return;
     for(let round = 0; round < 2; round++){
       if(t.flagged[round] < 0) continue;   // shortfall not known before this round
-      const flag = axis === 'region' ? SOUTHERN_AFRICA.has(id)
-        : axis === 'none' ? t.flagged[round] === 1
-        : t.flagged[round] === 1 && t.classes[axis][round] >= 1;
+      const flag = theory === 'region' ? SOUTHERN_AFRICA.has(id)
+        : theory === 'none' ? t.flagged[round] === 1
+        : t.flagged[round] === 1 && t.classes[theory][round] >= 1;
       const crisis = t.crisis[round] === 1;
       if(flag && crisis) h++; else if(flag) f++; else if(crisis) m++;
     }
@@ -23,13 +24,13 @@ function scoreOf(axis, ids){
 function drawScoreLine(){
   const el = document.getElementById('score');
   if(!el) return;
-  const a = scoreOf(selectedMeasure, selectedRegion === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[selectedRegion]);
+  const score = scoreOf(selectedMeasure, selectedRegion === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[selectedRegion]);
   const named = Object.keys(DATA.countries).filter(id => isHighestRisk(DATA.countries[id]));
   // big number first, its meaning underneath
   const stat = (big, unit, label) => `<div class="stat"><div class="sb">${big}<span class="su">${unit}</span></div><div class="sl">${label}</div></div>`;
   el.innerHTML = stat(named.filter(inSelectedRegion).length, ` of ${named.length}`, 'highest-risk countries in view')
-    + stat(a.h, ` of ${a.h + a.m}`, 'food crises the map would have warned of')
-    + stat(a.f, '', 'warnings followed by no crisis')
+    + stat(score.h, ` of ${score.h + score.m}`, 'food crises the map would have warned of')
+    + stat(score.f, '', 'warnings followed by no crisis')
     + '<div class="scontext">If drawn before each of the last two El Niños.</div>';
 }
 
@@ -38,7 +39,7 @@ function drawScoreTable(){
   const el = document.getElementById('scores');
   if(!el) return;
   const rows = [['region', 'Every southern African country'], ['none', 'Shortfall alone']]
-    .concat(MEASURE_ORDER.map(a => [a, 'Shortfall + ' + MEASURE_DATA[a].label.toLowerCase()]));
+    .concat(MEASURE_ORDER.map(measure => [measure, 'Shortfall + ' + MEASURE_DATA[measure].label.toLowerCase()]));
   const cell = o => `${o.hits} of ${o.hits + o.missed}<span class="fa"> · ${o.falseAlarms} false</span>`;
   el.querySelector('tbody').innerHTML = rows.map(([key, label]) => {
     const o = MEASURE_SCORES.world[key];
@@ -54,11 +55,11 @@ function drawScoreTable(){
 const MEASURE_ORDER = Object.keys(MEASURE_DATA);   // the measures present in js/measures.js, in order
 const showMeasureDefinition = () => { const def = document.getElementById('axisdef'); if(def) def.innerHTML = MEASURE_DISPLAY[selectedMeasure].definition; };
 
-function selectMeasure(a){
-  if(!MEASURE_DATA[a] || a === selectedMeasure) return;
-  selectedMeasure = a;
+function selectMeasure(measure){
+  if(!MEASURE_DATA[measure] || measure === selectedMeasure) return;
+  selectedMeasure = measure;
   const select = document.getElementById('axissel');
-  if(select) select.value = a;   // keep the dropdown in step when the table switches the measure
+  if(select) select.value = measure;   // keep the dropdown in step when the table switches the measure
   for(const key in pieceCache) delete pieceCache[key];   // which countries are named and raised depends on the measure
   showMeasureDefinition();
   washesShown = washesForWidth(); redrawMap(); drawWash(washTransform, washesShown); drawScoreTable();
@@ -67,7 +68,7 @@ function selectMeasure(a){
 // ---- controls ----------------------------------------------------------------------------------------------
 // the measure: one dropdown, "Shortfall + <measure>"
 document.getElementById('axisseg').innerHTML = '<select id="axissel" aria-label="Theory to test">'
-  + MEASURE_ORDER.map(a => `<option value="${a}"${a === selectedMeasure ? ' selected' : ''}>Shortfall + ${MEASURE_DATA[a].label.toLowerCase()}</option>`).join('')
+  + MEASURE_ORDER.map(measure => `<option value="${measure}"${measure === selectedMeasure ? ' selected' : ''}>Shortfall + ${MEASURE_DATA[measure].label.toLowerCase()}</option>`).join('')
   + '</select>';
 document.getElementById('axissel').addEventListener('change', e => selectMeasure(e.target.value));
 

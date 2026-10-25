@@ -23,9 +23,8 @@ function shortfallClass(r){
   return 0;
 }
 
-// second axis, 0 to 2: the share of cereals imported (25%, 50%), or the class of the selected measure. null: no data
+// second axis, 0 to 2: the class of the selected measure, from js/measures.js. null: no data
 function measureClass(r){
-  if(selectedMeasure === 'imports') return r.importShare >= 50 ? 2 : r.importShare >= 25 ? 1 : 0;
   const c = MEASURE_DATA[selectedMeasure].classes[ID_OF_RECORD.get(r)];
   return c == null ? null : c;
 }
@@ -47,7 +46,7 @@ function fillOf(id){
 // the lowest class on both axes is laid on at WATERCOLOUR.low (0: the white paper shows through),
 // so most of the world stays close to bare paper, as in ink-and-wash drawings
 function isLowestClass(r){
-  return r.harvestShortfall != null && shortfallClass(r) === 0 && measureClass(r) === 0;
+  return shortfallClass(r) === 0 && measureClass(r) === 0;
 }
 
 // ---- hatching: a weak harvest signal ---------------------------------------------------------------
@@ -57,7 +56,7 @@ const isWeakSignal = r => r.shortfallPValue >= WEAK_SIGNAL_P;   // the shortfall
 // fading the colour instead would turn it into a different class
 function showsWeakShortfall(id){
   const r = DATA.countries[id];
-  return r && r.harvestShortfall != null && shortfallClass(r) >= 1 && isWeakSignal(r);
+  return r && shortfallClass(r) >= 1 && isWeakSignal(r);
 }
 
 // ---- named countries ---------------------------------------------------------------------------------
@@ -66,10 +65,10 @@ function showsWeakShortfall(id){
 const NAMED_CELLS = [[2,1],[1,2],[2,2]];
 
 // "purple": any mixed colour, a harvest shortfall together with the middle or top class of the second measure
-const hasBothRisks = r => !!r && r.harvestShortfall != null && shortfallClass(r) >= 1 && measureClass(r) >= 1;
+const hasBothRisks = r => !!r && shortfallClass(r) >= 1 && measureClass(r) >= 1;
 
-// named on the map, and raised off the paper with a shadow: the NAMED_CELLS (22, 21, 12)
-const isHighestRisk = r => hasBothRisks(r) && shortfallClass(r) + measureClass(r) >= 3;
+// named on the map, and raised off the paper with a shadow: the countries in the NAMED_CELLS
+const isHighestRisk = r => !!r && NAMED_CELLS.some(([i, j]) => shortfallClass(r) === i && measureClass(r) === j);
 
 // country names as shown on the map: SHORT_NAMES first, then the SHORT_NAME_RULES in order
 const shortName = r => SHORT_NAMES[r.name] || SHORT_NAME_RULES.reduce((name, [from, to]) => name.replace(from, to), r.name);
@@ -100,8 +99,8 @@ const ZOOM_REGIONS = Object.keys(zoomRegionStats).sort((a, b) => {
   return zoomRegionStats[b].crises - zoomRegionStats[a].crises || zoomRegionStats[b].labelled - zoomRegionStats[a].labelled;
 });
 
-// each region's member countries, as a list and as a set, and its full name; 'world' has no member list
-const REGION_MEMBERS = {world: null}, REGION_MEMBER_SET = {}, REGION_TITLE = {};
+// each zoom region's member countries, as a list and as a set, and its full name ('world' is not a zoom region)
+const REGION_MEMBERS = {}, REGION_MEMBER_SET = {}, REGION_TITLE = {};
 ZOOM_REGIONS.forEach(zone => {
   REGION_MEMBERS[zone] = Object.keys(UN_SUBREGION).filter(id => zoomRegionOf(id) === zone);
   REGION_MEMBER_SET[zone] = new Set(REGION_MEMBERS[zone]);

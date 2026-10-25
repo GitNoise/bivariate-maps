@@ -26,7 +26,6 @@ from pipeline.paths import DATA_DIR, IMPORTS_CSV
 IMPORT_SHARE_YEARS = (2020, 2021, 2022)    # averaged; at least two of them needed
 MIN_PRODUCTION_YEARS = 30                  # years of harvests since 1980 for a shortfall
 MIN_MEAN_TONNES = 50_000                   # smaller producers are too erratic
-MIN_EL_NINO, MIN_NEUTRAL = 8, 7            # harvests needed on each side
 
 
 def import_shares(ratios, names):
@@ -54,10 +53,11 @@ def shortfall_fields(m49, production):
         return None
     lag = enso.harvest_lag(m49)
     anomalies = harvests.harvest_anomalies(production)
-    el_nino, neutral = harvests.split_by_phase(anomalies, lag)
-    if len(el_nino) < MIN_EL_NINO or len(neutral) < MIN_NEUTRAL:
+    result = harvests.shortfall(anomalies, lag, harvests.MAP_MIN_HARVESTS)
+    if result is None:
         return None
-    return {'harvestShortfall': round(harvests.shortfall_pct(el_nino, neutral), 1),
+    shortfall, el_nino, neutral = result
+    return {'harvestShortfall': round(shortfall, 1),
             'shortfallPValue': round(harvests.mann_whitney_p(el_nino, neutral), 3),
             'harvestVsTrendByYear': [round(anomalies[y]) if y in anomalies else None
                                      for y in range(enso.FIRST_YEAR, harvests.LAST_HARVEST_YEAR + 1)],

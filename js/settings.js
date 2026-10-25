@@ -44,7 +44,7 @@ const ZOOM_REGION_NAME = {ssa: 'Sub-Saharan Africa', wana: 'West Asia and North 
 const ZOOM_REGION_SHORT_NAME = {wana: 'W. Asia & N. Africa', seap: 'SE Asia & Pacific', cac: 'C. America & Caribbean'};
 // fixed editorial order for the known regions; any other region the data brings in follows, most crises first
 const ZOOM_REGION_ORDER = ['ssa', 'cac', 'wana', 'seap'];
-// the "every southern African country" baseline in the score line (the same list as REGIONS['saf'] in build_data.py)
+// the "every southern African country" baseline in the score line; the analysis reads this list too (pipeline/page_files.py)
 const SOUTHERN_AFRICA = new Set(['024','072','748','426','450','454','508','516','710','894','716']);
 
 // ---- Country names: short forms for the map.

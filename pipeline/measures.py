@@ -5,16 +5,17 @@ expectancy. Cereal imports stand for dependence on world markets; undernourishme
 Classes: 0 = strong capacity, 1 = middle, 2 = weak, with thresholds fixed before testing.
 """
 import csv, statistics
-from functools import lru_cache
+from functools import cache
 
-from . import harvests, walkforward
+from . import harvests
+from .countries import COUNTRIES, TESTED
 from .paths import MEASURES_DIR, PRODUCTION_CSV
 
-MEASURES = ['imports', 'gdp', 'poverty', 'hdi', 'life', 'undernourishment']
+ALL_MEASURES = ('imports', 'gdp', 'poverty', 'hdi', 'life', 'undernourishment')
 
 
-def _open(name):
-    return open(MEASURES_DIR / name, encoding='utf-8')
+def _open(name, encoding='utf-8'):
+    return open(MEASURES_DIR / name, encoding=encoding)
 
 
 # ---- country codes: UN M49 (the map) -> ISO3 (World Bank, Our World in Data), and country name -> ISO3 ----------------
@@ -30,7 +31,7 @@ NAME_TO_ISO3 = {row['Entity']: row['Code'] for row in csv.DictReader(open(PRODUC
 def _world_bank(name):
     """A World Bank CSV as {ISO3: {year: value}}."""
     out = {}
-    for row in csv.DictReader(open(MEASURES_DIR / name, encoding='utf-8-sig')):
+    for row in csv.DictReader(_open(name, 'utf-8-sig')):
         try:
             out.setdefault(row['Country Code'], {})[int(row['Year'])] = float(row['Value'])
         except (KeyError, ValueError):
@@ -98,10 +99,9 @@ def _owid(name, column=None):
     """An Our World in Data CSV as {ISO3: {year: value}}, countries only. column: the value column (default: the first
     column that isn't Entity, Code or Year); values like '<2.5' count as 2.5."""
     out = {}
-    path = MEASURES_DIR / name
-    if not path.exists():
+    if not (MEASURES_DIR / name).exists():
         return out
-    for row in csv.DictReader(open(path, encoding='utf-8-sig')):
+    for row in csv.DictReader(_open(name, 'utf-8-sig')):
         col = column or next(k for k in row if k not in ('Entity', 'Code', 'Year'))
         code, value = row.get('Code'), (row.get(col) or '').replace('<', '')
         if not code or code.startswith('OWID') or not value:
@@ -113,8 +113,18 @@ def _owid(name, column=None):
     return out
 
 
-HDI_BY_YEAR = _owid('human-development-index.csv', 'Human Development Index')
-LIFE_BY_YEAR = _owid('life-expectancy.csv', 'Life expectancy')
+@cache
+def hdi_by_year():
+    """HDI per country and year, for the tooltip only (the classes use the recent value above)."""
+    return _owid('human-development-index.csv', 'Human Development Index')
+
+
+@cache
+def life_by_year():
+    """Life expectancy per country and year, for the tooltip only (the classes use the recent value above)."""
+    return _owid('life-expectancy.csv', 'Life expectancy')
+
+
 UNDERNOURISHMENT = _owid('undernourishment.csv')
 
 
@@ -123,15 +133,15 @@ def undernourishment(iso3, year):
     return latest(UNDERNOURISHMENT.get(iso3, {}), year)
 
 
-if not UNDERNOURISHMENT:
-    MEASURES.remove('undernourishment')   # optional: only when data/proxies/undernourishment.csv is there
+# the measures on the map: undernourishment only when data/proxies/undernourishment.csv is there
+MEASURES = [m for m in ALL_MEASURES if m != 'undernourishment' or UNDERNOURISHMENT]
 
 
 # ---- classes ------------------------------------------------------------------------------------------------------
 # life expectancy is split at its median over the tested countries
 LIFE_EXPECTANCY_MEDIAN = statistics.median(
-    [v for v in (life_expectancy(M49_TO_ISO3.get(m49)) for m49 in walkforward.COUNTRIES
-                 if m49 in walkforward.TESTED and M49_TO_ISO3.get(m49)) if v is not None])
+    [v for v in (life_expectancy(M49_TO_ISO3.get(m49)) for m49 in COUNTRIES
+                 if m49 in TESTED and M49_TO_ISO3.get(m49)) if v is not None])
 
 # the thresholds as (middle class from, weak class from); written to js/measures.js, where the tooltip marks them
 THRESHOLDS = {'imports': (25, 50), 'poverty': (25, 50), 'undernourishment': (10, 25),
@@ -141,13 +151,14 @@ GDP_THRESHOLDS = {'before 2020': (4125, 1045), 'from 2020': (4465, 1135)}
 HIGHER_IS_WEAKER = {'imports': True, 'poverty': True, 'undernourishment': True, 'hdi': False, 'life': False, 'gdp': False}
 
 
-def thresholds(measure, year=2022):
+def thresholds(measure, year):
+    """(middle class from, weak class from); income's depend on the year."""
     if measure == 'gdp':
         return GDP_THRESHOLDS['before 2020' if year < 2020 else 'from 2020']
     return THRESHOLDS[measure]
 
 
-def class_of(measure, value, year=2022):
+def class_of(measure, value, year):
     """0, 1 or 2 (2 = weakest capacity), or None without a value."""
     if value is None:
         return None
@@ -157,7 +168,7 @@ def class_of(measure, value, year=2022):
     return 2 if value < weak else 1 if value < middle else 0
 
 
-@lru_cache(maxsize=None)
+@cache
 def values_known_in(m49, year):
     """Every measure for the country as known in the year: {measure: (value, class)}."""
     iso3 = M49_TO_ISO3.get(m49)
@@ -166,6 +177,5 @@ def values_known_in(m49, year):
                  'hdi': hdi(iso3), 'life': life_expectancy(iso3)}
     else:   # no ISO code, no data
         found = dict.fromkeys(['gdp', 'poverty', 'undernourishment', 'hdi', 'life'])
-    found['imports'] = walkforward.COUNTRIES[m49].get('importShare')   # the 2020–22 average, for every year
-    return {measure: (found[measure], class_of(measure, found[measure], year)) for measure in
-            ['imports', 'gdp', 'poverty', 'hdi', 'life', 'undernourishment']}
+    found['imports'] = COUNTRIES[m49].get('importShare')   # the 2020–22 average, for every year
+    return {measure: (value, class_of(measure, value, year)) for measure, value in found.items()}

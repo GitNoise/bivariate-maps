@@ -3,7 +3,7 @@ scores, and each country's test results, so the page can count hits and false al
 
     python3 build_measures.py
 """
-from pipeline import measures, walkforward
+from pipeline import crises, measures, walkforward
 from pipeline.harvests import LAST_HARVEST_YEAR
 from pipeline.measures import M49_TO_ISO3, MEASURES, values_known_in
 from pipeline.page_files import write_measures
@@ -30,8 +30,8 @@ def rounded(value, digits):
 SERIES_SOURCES = {
     'gdp': measures.gdp_per_person_in,
     'poverty': lambda iso3, year: rounded(measures.POVERTY.get(iso3, {}).get(year), 1),
-    'hdi': lambda iso3, year: rounded(measures.HDI_BY_YEAR.get(iso3, {}).get(year), 3),
-    'life': lambda iso3, year: rounded(measures.LIFE_BY_YEAR.get(iso3, {}).get(year), 1),
+    'hdi': lambda iso3, year: rounded(measures.hdi_by_year().get(iso3, {}).get(year), 3),
+    'life': lambda iso3, year: rounded(measures.life_by_year().get(iso3, {}).get(year), 1),
     'undernourishment': lambda iso3, year: measures.UNDERNOURISHMENT.get(iso3, {}).get(year),
 }
 
@@ -59,16 +59,16 @@ def measure_data():
     return out
 
 
-def flags_with(measure):
+def flags_with(theory):
     """The flagging rule for a theory: 'region' flags every southern African country, 'none' the shortfall alone, and a
-    measure flags the shortfall together with that measure's middle or weak class."""
-    if measure == 'region':
-        return lambda m49, shortfall, rnd: m49 in walkforward.SOUTHERN_AFRICA
-    if measure == 'none':
-        return lambda m49, shortfall, rnd: shortfall >= walkforward.FLAG_AT
+    measure flags the shortfall together with that measure's middle or weak class, as known then."""
+    if theory == 'region':
+        return walkforward.flags_southern_africa
+    if theory == 'none':
+        return walkforward.flags_shortfall
     def flags(m49, shortfall, rnd):
-        cls = values_known_in(m49, rnd.last_harvest)[measure][1]
-        return shortfall >= walkforward.FLAG_AT and cls is not None and cls >= 1
+        cls = values_known_in(m49, rnd.last_harvest)[theory][1]
+        return walkforward.flags_shortfall(m49, shortfall, rnd) and cls is not None and cls >= 1
     return flags
 
 
@@ -95,7 +95,7 @@ def test_results():
         for rnd in walkforward.ROUNDS:
             shortfall = walkforward.shortfall_known_before(m49, rnd)
             row['flagged'].append(-1 if shortfall is None else int(shortfall >= walkforward.FLAG_AT))
-            row['crisis'].append(int(walkforward.crises.had_crisis(m49, rnd.period)))
+            row['crisis'].append(int(crises.had_crisis(m49, rnd.period)))
             known = values_known_in(m49, rnd.last_harvest)
             for measure in MEASURES:
                 row['classes'][measure].append(-1 if known[measure][1] is None else known[measure][1])
@@ -119,8 +119,8 @@ def main():
         print(scope)
         for theory, by_period in theories.items():
             s15, s23 = by_period['2015'], by_period['2023']
-            hits, false_alarms, missed = (s15[k] + s23[k] for k in ('hits', 'falseAlarms', 'missed'))
-            print(f"   {theory:8s} 2015 {s15}  2023 {s23}  | hit rate {hits / (hits + missed):.0%} precision {hits / max(1, hits + false_alarms):.0%}")
+            _, hit_rate, precision = walkforward.combined({p: walkforward.Score(s['hits'], s['falseAlarms'], s['missed']) for p, s in by_period.items()})
+            print(f"   {theory:8s} 2015 {s15}  2023 {s23}  | hit rate {hit_rate:.0%} precision {precision:.0%}")
 
 
 if __name__ == '__main__':

@@ -110,14 +110,14 @@ function legendBox(u, pad){
 
 // ---- framing each view --------------------------------------------------------------------------------
 let isZooming = false;   // true while the map zooms; labels wait for it to settle
-let k = 1;                   // the current zoom factor
+let zoomScale = 1;   // the current zoom factor
 
 // features that cross the 180° line (Russia, Fiji) would stretch a frame across the whole map
 const crossesDateLine = i => shapeBounds[i][1][0] - shapeBounds[i][0][0] >= MAP_WIDTH / 2;
 
 // the zoom transform that frames a region, or the whole world
 function frameOf(key){
-  if(!REGION_MEMBERS[key]){
+  if(key === 'world'){
     // world view: frame on the land itself (the projection still leaves room for the removed Antarctica)
     const feats = countryShapes.features.filter((f, i) => !crossesDateLine(i));
     const [[x0, y0], [x1, y1]] = toSvgPath.bounds({type: 'FeatureCollection', features: feats});
@@ -163,11 +163,11 @@ function redrawMap(){
     .classed('fi', d => !!NATIONAL_CRISES[d.id])
     .style('fill', d => fillOf(d.id) || cssVar('--land'))
     .style('fill-opacity', d => isLowestClass(DATA.countries[d.id]) ? WATERCOLOUR.low : 1)
-    .attr('r', 3.2 / k)
+    .attr('r', 3.2 / zoomScale)
     .style('stroke-dasharray', d => showsWeakShortfall(d.id) ? '1.5 1.5' : null)
     .classed('dim', d => !inSelectedRegion(d.id));
   // the hatch stays a fine, constant texture on screen at every zoom level
-  [greyHatch, lightHatch].forEach(p => p.attr('patternTransform', `rotate(45) scale(${(1 / Math.max(1, k)).toFixed(4)})`));
+  [greyHatch, lightHatch].forEach(p => p.attr('patternTransform', `rotate(45) scale(${(1 / Math.max(1, zoomScale)).toFixed(4)})`));
   hatchPaths.attr('fill', d => hatchOf(d.id))
     .style('display', d => showsWeakShortfall(d.id) ? null : 'none')
     .classed('dim', d => !inSelectedRegion(d.id));
@@ -187,7 +187,7 @@ function redrawMap(){
 // switch to a region (or 'world'): repaint, then zoom the map and its wash there
 function zoomTo(key){
   selectedRegion = key;
-  const t = frameOf(key); k = t.k;
+  const t = frameOf(key); zoomScale = t.k;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   isZooming = true;   // the labels are drawn once the wash has settled (zoomWashTo), not on the old frame
   redrawMap();

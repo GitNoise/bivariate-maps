@@ -73,7 +73,7 @@ function legendMarkup(){
   { const [x, y] = P(0, 1.5); g += text(x + 23*n, y + 23*n, -45, MEASURE_DATA[selectedMeasure].axis + ' →', 'bl-ax', 'middle'); }
   // title on top: the lifted cells are the countries named on the map (definitions live in the key line under the map)
   { const [x, y] = P(3, 3); g += text(x, y - 9, 0, 'Highest-risk countries', 'bl-top'); }
-  return `<span class="bilegend"><svg viewBox="0 0 380 236" width="380" height="236" role="img" aria-label="Legend: colour combines import share (left axis, blue) and El Niño harvest shortfall (right axis, red); purple at the top is highest risk">${g}</svg></span>`;
+  return `<span class="bilegend"><svg viewBox="0 0 380 236" width="380" height="236" role="img" aria-label="Legend: colour combines the El Niño harvest shortfall (left edge, purple) and the selected measure (right edge, gold); the raised cells at the top are the highest-risk countries">${g}</svg></span>`;
 }
 
 // the legend shrinks on narrower maps, keeping its proportions

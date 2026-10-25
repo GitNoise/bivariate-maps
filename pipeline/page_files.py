@@ -27,24 +27,26 @@ def read_crisis_table(name):
     """A hand-edited crisis table of js/data.js (NATIONAL_CRISES, SMALLER_CRISES) as {m49: (periods, source note)},
     each line written as   '716': ['2015–16', '2023–24'],   // Zimbabwe (26%, 32%)"""
     block = re.search(r'^const ' + name + r' = \{(.*?)^\};', _data_js(), re.S | re.M).group(1)
-    return {m.group(1): (re.findall(r"'([^']*)'", m.group(2)), m.group(3).strip())
-            for m in re.finditer(r"'(\d+)':\s*(\[[^\]]*\]),\s*//\s*(.*)", block)}
+    return {m.group(1): (re.findall(r"'([^']*)'", m.group(2)), (m.group(3) or '').strip())
+            for m in re.finditer(r"'(\d+)':\s*(\[[^\]]*\]),?[ \t]*(?://[ \t]*(.*))?", block)}   # the source note is optional
 
 
 def read_southern_africa():
     """The southern African countries (UN M49 codes), from SOUTHERN_AFRICA in js/settings.js: the baseline that flags
     every country there. The page and the analysis share this one list."""
     source = PAGE_SETTINGS_JS.read_text(encoding='utf-8')
-    return set(re.findall(r"'(\d{3})'", re.search(r'^const SOUTHERN_AFRICA = new Set\(\[(.*?)\]\)', source, re.M).group(1)))
+    return set(re.findall(r"'(\d{3})'", re.search(r'^const SOUTHERN_AFRICA = new Set\(\[(.*?)\]\)', source, re.M | re.S).group(1)))
 
 
 def write_country_data(data):
     """Replace the DATA line of js/data.js; everything else in the file stays as it is."""
     line = 'const DATA = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n'
+    global _source
     source, n = _DATA_LINE.subn(lambda _: line, _data_js(), count=1)
     if n != 1:
         raise SystemExit('DATA line not found in js/data.js')
     PAGE_DATA_JS.write_text(source, encoding='utf-8')
+    _source = source   # later reads in this process see the new data
 
 
 def write_measures(header, constants):

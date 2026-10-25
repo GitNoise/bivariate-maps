@@ -414,7 +414,7 @@ const ZOOM_REGION_NAME = {ssa: 'Sub-Saharan Africa', wana: 'West Asia and North 
 const ZOOM_REGION_SHORT_NAME = {wana: 'W. Asia & N. Africa', seap: 'SE Asia & Pacific', cac: 'C. America & Caribbean'};
 // fixed editorial order for the known regions; any other region the data brings in follows, most crises first
 const ZOOM_REGION_ORDER = ['ssa', 'cac', 'wana', 'seap'];
-// the "every southern African country" baseline in the score line (the same list as REGIONS['saf'] in build_data.py)
+// the "every southern African country" baseline in the score line; the analysis reads this list too (pipeline/page_files.py)
 const SOUTHERN_AFRICA = new Set(['024','072','748','426','450','454','508','516','710','894','716']);
 
 // ---- Country names: short forms for the map.
@@ -469,9 +469,8 @@ function shortfallClass(r){
   return 0;
 }
 
-// second axis, 0 to 2: the share of cereals imported (25%, 50%), or the class of the selected measure. null: no data
+// second axis, 0 to 2: the class of the selected measure, from js/measures.js. null: no data
 function measureClass(r){
-  if(selectedMeasure === 'imports') return r.importShare >= 50 ? 2 : r.importShare >= 25 ? 1 : 0;
   const c = MEASURE_DATA[selectedMeasure].classes[ID_OF_RECORD.get(r)];
   return c == null ? null : c;
 }
@@ -493,7 +492,7 @@ function fillOf(id){
 // the lowest class on both axes is laid on at WATERCOLOUR.low (0: the white paper shows through),
 // so most of the world stays close to bare paper, as in ink-and-wash drawings
 function isLowestClass(r){
-  return r.harvestShortfall != null && shortfallClass(r) === 0 && measureClass(r) === 0;
+  return shortfallClass(r) === 0 && measureClass(r) === 0;
 }
 
 // ---- hatching: a weak harvest signal ---------------------------------------------------------------
@@ -503,7 +502,7 @@ const isWeakSignal = r => r.shortfallPValue >= WEAK_SIGNAL_P;   // the shortfall
 // fading the colour instead would turn it into a different class
 function showsWeakShortfall(id){
   const r = DATA.countries[id];
-  return r && r.harvestShortfall != null && shortfallClass(r) >= 1 && isWeakSignal(r);
+  return r && shortfallClass(r) >= 1 && isWeakSignal(r);
 }
 
 // ---- named countries ---------------------------------------------------------------------------------
@@ -512,10 +511,10 @@ function showsWeakShortfall(id){
 const NAMED_CELLS = [[2,1],[1,2],[2,2]];
 
 // "purple": any mixed colour, a harvest shortfall together with the middle or top class of the second measure
-const hasBothRisks = r => !!r && r.harvestShortfall != null && shortfallClass(r) >= 1 && measureClass(r) >= 1;
+const hasBothRisks = r => !!r && shortfallClass(r) >= 1 && measureClass(r) >= 1;
 
-// named on the map, and raised off the paper with a shadow: the NAMED_CELLS (22, 21, 12)
-const isHighestRisk = r => hasBothRisks(r) && shortfallClass(r) + measureClass(r) >= 3;
+// named on the map, and raised off the paper with a shadow: the countries in the NAMED_CELLS
+const isHighestRisk = r => !!r && NAMED_CELLS.some(([i, j]) => shortfallClass(r) === i && measureClass(r) === j);
 
 // country names as shown on the map: SHORT_NAMES first, then the SHORT_NAME_RULES in order
 const shortName = r => SHORT_NAMES[r.name] || SHORT_NAME_RULES.reduce((name, [from, to]) => name.replace(from, to), r.name);
@@ -546,8 +545,8 @@ const ZOOM_REGIONS = Object.keys(zoomRegionStats).sort((a, b) => {
   return zoomRegionStats[b].crises - zoomRegionStats[a].crises || zoomRegionStats[b].labelled - zoomRegionStats[a].labelled;
 });
 
-// each region's member countries, as a list and as a set, and its full name; 'world' has no member list
-const REGION_MEMBERS = {world: null}, REGION_MEMBER_SET = {}, REGION_TITLE = {};
+// each zoom region's member countries, as a list and as a set, and its full name ('world' is not a zoom region)
+const REGION_MEMBERS = {}, REGION_MEMBER_SET = {}, REGION_TITLE = {};
 ZOOM_REGIONS.forEach(zone => {
   REGION_MEMBERS[zone] = Object.keys(UN_SUBREGION).filter(id => zoomRegionOf(id) === zone);
   REGION_MEMBER_SET[zone] = new Set(REGION_MEMBERS[zone]);
@@ -568,6 +567,9 @@ function bbox(points){
   const [y0, y1] = d3.extent(points, p => p[1]);
   return [x0, y0, x1, y1];
 }
+
+// the ring with the largest area (outer rings and holes alike), e.g. a country's main piece
+const largestRing = rings => d3.greatest(rings, r => Math.abs(d3.polygonArea(r)));
 
 // do two boxes overlap?
 const boxesOverlap = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
@@ -753,14 +755,14 @@ function legendBox(u, pad){
 
 // ---- framing each view --------------------------------------------------------------------------------
 let isZooming = false;   // true while the map zooms; labels wait for it to settle
-let k = 1;                   // the current zoom factor
+let zoomScale = 1;   // the current zoom factor
 
 // features that cross the 180° line (Russia, Fiji) would stretch a frame across the whole map
 const crossesDateLine = i => shapeBounds[i][1][0] - shapeBounds[i][0][0] >= MAP_WIDTH / 2;
 
 // the zoom transform that frames a region, or the whole world
 function frameOf(key){
-  if(!REGION_MEMBERS[key]){
+  if(key === 'world'){
     // world view: frame on the land itself (the projection still leaves room for the removed Antarctica)
     const feats = countryShapes.features.filter((f, i) => !crossesDateLine(i));
     const [[x0, y0], [x1, y1]] = toSvgPath.bounds({type: 'FeatureCollection', features: feats});
@@ -806,11 +808,11 @@ function redrawMap(){
     .classed('fi', d => !!NATIONAL_CRISES[d.id])
     .style('fill', d => fillOf(d.id) || cssVar('--land'))
     .style('fill-opacity', d => isLowestClass(DATA.countries[d.id]) ? WATERCOLOUR.low : 1)
-    .attr('r', 3.2 / k)
+    .attr('r', 3.2 / zoomScale)
     .style('stroke-dasharray', d => showsWeakShortfall(d.id) ? '1.5 1.5' : null)
     .classed('dim', d => !inSelectedRegion(d.id));
   // the hatch stays a fine, constant texture on screen at every zoom level
-  [greyHatch, lightHatch].forEach(p => p.attr('patternTransform', `rotate(45) scale(${(1 / Math.max(1, k)).toFixed(4)})`));
+  [greyHatch, lightHatch].forEach(p => p.attr('patternTransform', `rotate(45) scale(${(1 / Math.max(1, zoomScale)).toFixed(4)})`));
   hatchPaths.attr('fill', d => hatchOf(d.id))
     .style('display', d => showsWeakShortfall(d.id) ? null : 'none')
     .classed('dim', d => !inSelectedRegion(d.id));
@@ -830,7 +832,7 @@ function redrawMap(){
 // switch to a region (or 'world'): repaint, then zoom the map and its wash there
 function zoomTo(key){
   selectedRegion = key;
-  const t = frameOf(key); k = t.k;
+  const t = frameOf(key); zoomScale = t.k;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   isZooming = true;   // the labels are drawn once the wash has settled (zoomWashTo), not on the old frame
   redrawMap();
@@ -918,8 +920,7 @@ function buildWash(z, t){
     // let the pigment flow out past the border by WATERCOLOUR.spill of the shape's size: outer rings grow, holes shrink.
     // d3.polygonArea is signed, so an outer ring and its holes wind opposite ways
     const area = d3.polygonArea;
-    const largest = rings.reduce((m, r) => Math.abs(area(r)) > Math.abs(area(m)) ? r : m, rings[0] || []);
-    const outerSign = Math.sign(area(largest));
+    const outerSign = Math.sign(area(largestRing(rings) || []));
     rings = rings.map(r => {
       const cx = d3.mean(r, p => p[0]), cy = d3.mean(r, p => p[1]);
       const g = Math.sign(area(r)) === outerSign ? 1 + WATERCOLOUR.spill : 1 / (1 + WATERCOLOUR.spill);
@@ -1062,24 +1063,22 @@ let washCache = {}, washTransform = d3.zoomIdentity, washesShown = null;   // wa
 function washesForWidth(){
   const id = 'all@' + Math.round(mapbox.clientWidth);
   if(!washCache[id]){
-    const deepestZoom = Math.max(...Object.keys(REGION_MEMBERS).filter(r => REGION_MEMBERS[r]).map(r => frameOf(r).k));
+    const deepestZoom = Math.max(...ZOOM_REGIONS.map(zone => frameOf(zone).k));
     washCache = {[id]: buildWash(deepestZoom, null)};
   }
   return washCache[id];
 }
 
-// zoom the map and its wash to transform t over dur ms; the labels are drawn when it ends
+// zoom the map and its wash to transform t over dur ms (zoomTo has cleared the labels and set isZooming); the labels are drawn when it ends
 function zoomWashTo(t, dur){
   const target = washesForWidth();
   const iz = d3.interpolate([washTransform.x, washTransform.y, washTransform.k], [t.x, t.y, t.k]);
-  isZooming = true; labelLayer.selectAll('*').remove(); labelLayer.style('opacity', 0);
   d3.select(washCanvas).interrupt().transition().duration(dur).ease(d3.easeCubicInOut)
     .tween('wash', () => q => {
       const [x, y, kk] = iz(q), T = d3.zoomIdentity.translate(x, y).scale(kk);
       zoomLayer.attr('transform', T.toString());
       drawWash(T, target);
     })
-    .on('start', () => { isZooming = true; })
     .on('end interrupt', () => {
       washTransform = t; washesShown = target;
       zoomLayer.attr('transform', t.toString());
@@ -1165,17 +1164,17 @@ let landMask = null;
 function landMaskFor(t){
   const key = [t.k, t.x, t.y].map(v => v.toFixed(3)).join(',');
   if(landMask && landMask.key === key) return landMask;
-  // full resolution (S = 1), so small islands are in the mask
-  const S = 1, mc = document.createElement('canvas');
-  mc.width = Math.ceil(MAP_WIDTH / S); mc.height = Math.ceil(MAP_HEIGHT / S);
+  // full resolution, so small islands are in the mask
+  const mc = document.createElement('canvas');
+  mc.width = Math.ceil(MAP_WIDTH); mc.height = Math.ceil(MAP_HEIGHT);
   const ctx = mc.getContext('2d');
-  ctx.setTransform(t.k / S, 0, 0, t.k / S, t.x / S, t.y / S);
+  ctx.setTransform(t.k, 0, 0, t.k, t.x, t.y);
   const gp = d3.geoPath(projection, ctx);
   ctx.beginPath(); countryShapes.features.forEach(f => gp(f)); ctx.fill();
-  return (landMask = {key, S, w: mc.width, h: mc.height, a: ctx.getImageData(0, 0, mc.width, mc.height).data});
+  return (landMask = {key, w: mc.width, h: mc.height, a: ctx.getImageData(0, 0, mc.width, mc.height).data});
 }
 function isLand(mask, sx, sy){
-  const mx = Math.floor(sx / mask.S), my = Math.floor(sy / mask.S);
+  const mx = Math.floor(sx), my = Math.floor(sy);
   return mx >= 0 && my >= 0 && mx < mask.w && my < mask.h && mask.a[(my * mask.w + mx) * 4 + 3] > 0;
 }
 
@@ -1265,8 +1264,7 @@ function drawWorldNotes(t){
 // ---- zoomed in: the names of the highest-risk countries --------------------------------------------------
 // label point: the spot deepest inside the country's largest piece (pole of inaccessibility), on screen at transform t
 function anchorOf(f, t){
-  let best = null, bestArea = -1;
-  ringsOf(f).forEach(r => { const a = Math.abs(d3.polygonArea(r)); if(a > bestArea){ bestArea = a; best = r; } });
+  const best = largestRing(ringsOf(f));
   const edgeDist = p => {
     let m = Infinity;
     for(let i = 0; i < best.length; i++){ const d = segDist2(p, best[i], best[(i + 1) % best.length]); if(d < m) m = d; }
@@ -1295,7 +1293,7 @@ function anchorOf(f, t){
 function drawRegionLabels(t){
   const u = unitsPerPx(), edge = 6 * u, pad = 3 * u;
   const keyBox = legendBox(u, pad);   // the legend, in viewBox units: labels stay clear of it
-  const items = measureLabels(t, u);
+  const items = layoutLabelItems(t, u);
   if(!items.length) return false;
   const placed = placeOnCountries(items, u, edge, pad, keyBox);
   const outs = items.filter(it => !it.inline);   // the labels that go beside the region
@@ -1328,7 +1326,7 @@ const boxOf = (it, pad) => [it.x - it.w / 2 - pad, it.y - it.h / 2 - pad, it.x +
 const setBox = (it, pad) => { it.box = boxOf(it, pad); };
 
 // one item per named country in the region: its label (written and measured), its anchor point and its outline on screen
-function measureLabels(t, u){
+function layoutLabelItems(t, u){
   const ids = REGION_MEMBER_SET[selectedRegion];
   return countryShapes.features.filter(f => ids.has(f.id) && isHighestRisk(DATA.countries[f.id])).map(f => {
     const r = DATA.countries[f.id];
@@ -1613,7 +1611,7 @@ function legendMarkup(){
   { const [x, y] = P(0, 1.5); g += text(x + 23*n, y + 23*n, -45, MEASURE_DATA[selectedMeasure].axis + ' →', 'bl-ax', 'middle'); }
   // title on top: the lifted cells are the countries named on the map (definitions live in the key line under the map)
   { const [x, y] = P(3, 3); g += text(x, y - 9, 0, 'Highest-risk countries', 'bl-top'); }
-  return `<span class="bilegend"><svg viewBox="0 0 380 236" width="380" height="236" role="img" aria-label="Legend: colour combines import share (left axis, blue) and El Niño harvest shortfall (right axis, red); purple at the top is highest risk">${g}</svg></span>`;
+  return `<span class="bilegend"><svg viewBox="0 0 380 236" width="380" height="236" role="img" aria-label="Legend: colour combines the El Niño harvest shortfall (left edge, purple) and the selected measure (right edge, gold); the raised cells at the top are the highest-risk countries">${g}</svg></span>`;
 }
 
 // the legend shrinks on narrower maps, keeping its proportions
@@ -1746,17 +1744,18 @@ smallCountryDots.on('pointermove', showTooltip).on('pointerleave', hideTooltip);
 // the table of every measure, and starting the page. Loaded last.
 
 // ---- score line: three big numbers for the selected measure, counted for the countries in view -----------------
-// hits, false alarms and misses for a measure over a set of countries, both rounds (2015–16, 2023–24) together
-function scoreOf(axis, ids){
+// hits, false alarms and misses for a theory over a set of countries, both rounds (2015–16, 2023–24) together.
+// theory: a measure, 'none' (the shortfall alone) or 'region' (every southern African country)
+function scoreOf(theory, ids){
   let h = 0, f = 0, m = 0;
   ids.forEach(id => {
     const t = TEST_RESULTS[id];
     if(!t) return;
     for(let round = 0; round < 2; round++){
       if(t.flagged[round] < 0) continue;   // shortfall not known before this round
-      const flag = axis === 'region' ? SOUTHERN_AFRICA.has(id)
-        : axis === 'none' ? t.flagged[round] === 1
-        : t.flagged[round] === 1 && t.classes[axis][round] >= 1;
+      const flag = theory === 'region' ? SOUTHERN_AFRICA.has(id)
+        : theory === 'none' ? t.flagged[round] === 1
+        : t.flagged[round] === 1 && t.classes[theory][round] >= 1;
       const crisis = t.crisis[round] === 1;
       if(flag && crisis) h++; else if(flag) f++; else if(crisis) m++;
     }
@@ -1767,13 +1766,13 @@ function scoreOf(axis, ids){
 function drawScoreLine(){
   const el = document.getElementById('score');
   if(!el) return;
-  const a = scoreOf(selectedMeasure, selectedRegion === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[selectedRegion]);
+  const score = scoreOf(selectedMeasure, selectedRegion === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[selectedRegion]);
   const named = Object.keys(DATA.countries).filter(id => isHighestRisk(DATA.countries[id]));
   // big number first, its meaning underneath
   const stat = (big, unit, label) => `<div class="stat"><div class="sb">${big}<span class="su">${unit}</span></div><div class="sl">${label}</div></div>`;
   el.innerHTML = stat(named.filter(inSelectedRegion).length, ` of ${named.length}`, 'highest-risk countries in view')
-    + stat(a.h, ` of ${a.h + a.m}`, 'food crises the map would have warned of')
-    + stat(a.f, '', 'warnings followed by no crisis')
+    + stat(score.h, ` of ${score.h + score.m}`, 'food crises the map would have warned of')
+    + stat(score.f, '', 'warnings followed by no crisis')
     + '<div class="scontext">If drawn before each of the last two El Niños.</div>';
 }
 
@@ -1782,7 +1781,7 @@ function drawScoreTable(){
   const el = document.getElementById('scores');
   if(!el) return;
   const rows = [['region', 'Every southern African country'], ['none', 'Shortfall alone']]
-    .concat(MEASURE_ORDER.map(a => [a, 'Shortfall + ' + MEASURE_DATA[a].label.toLowerCase()]));
+    .concat(MEASURE_ORDER.map(measure => [measure, 'Shortfall + ' + MEASURE_DATA[measure].label.toLowerCase()]));
   const cell = o => `${o.hits} of ${o.hits + o.missed}<span class="fa"> · ${o.falseAlarms} false</span>`;
   el.querySelector('tbody').innerHTML = rows.map(([key, label]) => {
     const o = MEASURE_SCORES.world[key];
@@ -1798,11 +1797,11 @@ function drawScoreTable(){
 const MEASURE_ORDER = Object.keys(MEASURE_DATA);   // the measures present in js/measures.js, in order
 const showMeasureDefinition = () => { const def = document.getElementById('axisdef'); if(def) def.innerHTML = MEASURE_DISPLAY[selectedMeasure].definition; };
 
-function selectMeasure(a){
-  if(!MEASURE_DATA[a] || a === selectedMeasure) return;
-  selectedMeasure = a;
+function selectMeasure(measure){
+  if(!MEASURE_DATA[measure] || measure === selectedMeasure) return;
+  selectedMeasure = measure;
   const select = document.getElementById('axissel');
-  if(select) select.value = a;   // keep the dropdown in step when the table switches the measure
+  if(select) select.value = measure;   // keep the dropdown in step when the table switches the measure
   for(const key in pieceCache) delete pieceCache[key];   // which countries are named and raised depends on the measure
   showMeasureDefinition();
   washesShown = washesForWidth(); redrawMap(); drawWash(washTransform, washesShown); drawScoreTable();
@@ -1811,7 +1810,7 @@ function selectMeasure(a){
 // ---- controls ----------------------------------------------------------------------------------------------
 // the measure: one dropdown, "Shortfall + <measure>"
 document.getElementById('axisseg').innerHTML = '<select id="axissel" aria-label="Theory to test">'
-  + MEASURE_ORDER.map(a => `<option value="${a}"${a === selectedMeasure ? ' selected' : ''}>Shortfall + ${MEASURE_DATA[a].label.toLowerCase()}</option>`).join('')
+  + MEASURE_ORDER.map(measure => `<option value="${measure}"${measure === selectedMeasure ? ' selected' : ''}>Shortfall + ${MEASURE_DATA[measure].label.toLowerCase()}</option>`).join('')
   + '</select>';
 document.getElementById('axissel').addEventListener('change', e => selectMeasure(e.target.value));
 

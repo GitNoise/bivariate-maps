@@ -7,6 +7,9 @@ function bbox(points){
   return [x0, y0, x1, y1];
 }
 
+// the ring with the largest area (outer rings and holes alike), e.g. a country's main piece
+const largestRing = rings => d3.greatest(rings, r => Math.abs(d3.polygonArea(r)));
+
 // do two boxes overlap?
 const boxesOverlap = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
 

@@ -41,6 +41,7 @@ Scripts load in this order: d3, topojson-client, `js/data.js`, `js/settings.js`,
 | `pipeline/harvests.py` | Cereal production, its long-term trend (LOWESS), the El Niño harvest shortfall and its significance test. |
 | `pipeline/imports.py` | FAO food balance sheets and the cereal import dependency ratio. |
 | `pipeline/measures.py` | The second measures' source data and their three classes. |
+| `pipeline/countries.py` | The countries on the map, the southern Africa list and cereal production, shared by the modules below. |
 | `pipeline/crises.py` | The recorded crises, read from `js/data.js`. |
 | `pipeline/walkforward.py` | The map as it would have looked before each crisis period, and its scores. |
 | `pipeline/page_files.py`, `pipeline/paths.py` | Reading and writing the page's data files; where everything is. |
@@ -57,7 +58,7 @@ Scripts load in this order: d3, topojson-client, `js/data.js`, `js/settings.js`,
 ```bash
 python3 build_data.py <FAO food balance sheets, historic> <FAO food balance sheets, current> data/cereal-production.csv   # js/data.js
 python3 build_measures.py                     # js/measures.js
-python3 trace.py data/cereal-production.csv   # TRACE.md (needs scipy and statsmodels for two cross-checks)
+python3 trace.py                              # TRACE.md (needs scipy and statsmodels for two cross-checks)
 python3 analysis/robustness.py                # the robustness checks, printed
 python3 analysis/coping_capacity.py           # the coping-capacity test, printed
 python3 bundle.py                             # dist/index.html

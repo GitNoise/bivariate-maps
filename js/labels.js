@@ -71,17 +71,17 @@ let landMask = null;
 function landMaskFor(t){
   const key = [t.k, t.x, t.y].map(v => v.toFixed(3)).join(',');
   if(landMask && landMask.key === key) return landMask;
-  // full resolution (S = 1), so small islands are in the mask
-  const S = 1, mc = document.createElement('canvas');
-  mc.width = Math.ceil(MAP_WIDTH / S); mc.height = Math.ceil(MAP_HEIGHT / S);
+  // full resolution, so small islands are in the mask
+  const mc = document.createElement('canvas');
+  mc.width = Math.ceil(MAP_WIDTH); mc.height = Math.ceil(MAP_HEIGHT);
   const ctx = mc.getContext('2d');
-  ctx.setTransform(t.k / S, 0, 0, t.k / S, t.x / S, t.y / S);
+  ctx.setTransform(t.k, 0, 0, t.k, t.x, t.y);
   const gp = d3.geoPath(projection, ctx);
   ctx.beginPath(); countryShapes.features.forEach(f => gp(f)); ctx.fill();
-  return (landMask = {key, S, w: mc.width, h: mc.height, a: ctx.getImageData(0, 0, mc.width, mc.height).data});
+  return (landMask = {key, w: mc.width, h: mc.height, a: ctx.getImageData(0, 0, mc.width, mc.height).data});
 }
 function isLand(mask, sx, sy){
-  const mx = Math.floor(sx / mask.S), my = Math.floor(sy / mask.S);
+  const mx = Math.floor(sx), my = Math.floor(sy);
   return mx >= 0 && my >= 0 && mx < mask.w && my < mask.h && mask.a[(my * mask.w + mx) * 4 + 3] > 0;
 }
 
@@ -171,8 +171,7 @@ function drawWorldNotes(t){
 // ---- zoomed in: the names of the highest-risk countries --------------------------------------------------
 // label point: the spot deepest inside the country's largest piece (pole of inaccessibility), on screen at transform t
 function anchorOf(f, t){
-  let best = null, bestArea = -1;
-  ringsOf(f).forEach(r => { const a = Math.abs(d3.polygonArea(r)); if(a > bestArea){ bestArea = a; best = r; } });
+  const best = largestRing(ringsOf(f));
   const edgeDist = p => {
     let m = Infinity;
     for(let i = 0; i < best.length; i++){ const d = segDist2(p, best[i], best[(i + 1) % best.length]); if(d < m) m = d; }
@@ -201,7 +200,7 @@ function anchorOf(f, t){
 function drawRegionLabels(t){
   const u = unitsPerPx(), edge = 6 * u, pad = 3 * u;
   const keyBox = legendBox(u, pad);   // the legend, in viewBox units: labels stay clear of it
-  const items = measureLabels(t, u);
+  const items = layoutLabelItems(t, u);
   if(!items.length) return false;
   const placed = placeOnCountries(items, u, edge, pad, keyBox);
   const outs = items.filter(it => !it.inline);   // the labels that go beside the region
@@ -234,7 +233,7 @@ const boxOf = (it, pad) => [it.x - it.w / 2 - pad, it.y - it.h / 2 - pad, it.x +
 const setBox = (it, pad) => { it.box = boxOf(it, pad); };
 
 // one item per named country in the region: its label (written and measured), its anchor point and its outline on screen
-function measureLabels(t, u){
+function layoutLabelItems(t, u){
   const ids = REGION_MEMBER_SET[selectedRegion];
   return countryShapes.features.filter(f => ids.has(f.id) && isHighestRisk(DATA.countries[f.id])).map(f => {
     const r = DATA.countries[f.id];
