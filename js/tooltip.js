@@ -1,6 +1,12 @@
 // El Niño × food security: the tooltip. A country's figures for both axes of the map, its crises, and two sparklines:
 // its harvests against trend, and the selected measure over time where the data has a series.
 
+import {DATA, NATIONAL_CRISES, SMALLER_CRISES} from './data.js';
+import {HARVEST_RANGE, MEASURE_DISPLAY} from './settings.js';
+import {MEASURE_DATA} from './measures.js';
+import {selectedMeasure, fillOf, isWeakSignal, shortName, inSelectedRegion} from './classes.js';
+import {mapbox, tooltipBox, countryPaths, smallCountryDots} from './map.js';
+
 const SPARK_FROM = 1980, SPARK_TO = DATA.harvestsLastYear;   // both sparklines share one timeline
 
 // a sparkline for a yearly series (values from SPARK_FROM, null where missing), drawn through the years that have a value.
@@ -94,7 +100,7 @@ function showTooltip(ev, d){
 function hideTooltip(){ tooltipBox.style.opacity = 0; tooltipCountry = null; }
 
 // after a change of measure or region (paint calls it): refill the open tooltip in place, without waiting for the mouse to move
-function refreshTooltip(){
+export function refreshTooltip(){
   if(tooltipCountry) fillTooltip(tooltipCountry);
 }
 countryPaths.on('pointermove', showTooltip).on('pointerleave', hideTooltip);

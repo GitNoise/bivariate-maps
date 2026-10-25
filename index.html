@@ -86,12 +86,12 @@
           <tr><th scope="row">Method design &amp; testing</th><td>Questioned results, asked for tests</td><td>Proposed &amp; built tests</td><td>High</td></tr>
           <tr><th scope="row">Alternative explanations</th><td>Raised the hypotheses</td><td>Chose measures, ran the tests</td><td>High</td></tr>
           <tr><th scope="row">Data processing &amp; statistics</th><td>Reviewed results</td><td>Did the work</td><td>Low</td></tr>
-          <tr><th scope="row">Traceability &amp; sources</th><td>Asked for a full trace</td><td>Built trace, scripts &amp; sources</td><td>Low</td></tr>
+          <tr><th scope="row">Traceability &amp; sources</th><td>Asked for a full trace and reproducible setup</td><td>Built trace, tests, scripts &amp; sources</td><td>Low</td></tr>
           <tr><th scope="row">Source research &amp; fact-checking</th><td>Spot-checked</td><td>Heavily assisted</td><td>Medium</td></tr>
           <tr><th scope="row">Visual design</th><td>Led</td><td>Assisted</td><td>High</td></tr>
           <tr><th scope="row">Interactive explorer</th><td>Proposed concept &amp; layout</td><td>Built it</td><td>High</td></tr>
           <tr><th scope="row">Annotation &amp; labelling rules</th><td>Set the rules</td><td>Built the algorithms</td><td>High</td></tr>
-          <tr><th scope="row">Code &amp; debugging</th><td>Directed &amp; tested in browser</td><td>Wrote the code</td><td>Low</td></tr>
+          <tr><th scope="row">Code &amp; debugging</th><td>Set the structure (pandas, ES modules, one trace and no notebook), tested in browser</td><td>Proposed options, wrote the code</td><td>Medium</td></tr>
           <tr><th scope="row">Copy &amp; insight lines</th><td>Directed &amp; edited</td><td>Drafted</td><td>Medium</td></tr>
           <tr><th scope="row">Final editorial decisions</th><td>Made by me</td><td>No decision authority</td><td>—</td></tr>
         </tbody>
@@ -105,16 +105,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="js/vendor/topojson-client.min.js"></script>
-<script src="js/data.js"></script>
-<script src="js/settings.js"></script>
-<script src="js/measures.js"></script>
-<script src="js/classes.js"></script>
-<script src="js/geometry.js"></script>
-<script src="js/map.js"></script>
-<script src="js/watercolour.js"></script>
-<script src="js/labels.js"></script>
-<script src="js/legend.js"></script>
-<script src="js/tooltip.js"></script>
-<script src="js/explorer.js"></script>
+<script type="module" src="js/explorer.js"></script>   <!-- imports the other modules in js/ -->
 </body>
 </html>

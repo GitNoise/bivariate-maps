@@ -1,13 +1,19 @@
 // El Niño × food security: text on the map. In the world view, short notes on the clusters of crisis countries;
 // zoomed into a region, the names of the highest-risk countries, on the country or beside it with a swoopy arrow.
 
-const labelLayer = svg.append('g').attr('class', 'callouts').style('opacity', 0);
+import {WORLD, DATA, NATIONAL_CRISES} from './data.js';
+import {WORLD_NOTES, CLUSTER_KM} from './settings.js';
+import {isHighestRisk, shortName, zoomRegionOf, REGION_MEMBER_SET, selectedRegion} from './classes.js';
+import {bbox, largestRing, boxesOverlap, insideBox, segDist2, pushApart, clampToFrame, swoopPath, arcPoints, segsCross} from './geometry.js';
+import {mapbox, MAP_WIDTH, MAP_HEIGHT, svg, countryShapes, projection, countryIdOf, ringsOf, defs, unitsPerPx, legendBox, isZooming} from './map.js';
+
+export const labelLayer = svg.append('g').attr('class', 'callouts').style('opacity', 0);
 defs.append('marker').attr('id', 'swoopHead').attr('viewBox', '0 0 10 10').attr('refX', 8.5).attr('refY', 5)
   .attr('markerWidth', 5.5).attr('markerHeight', 5.5).attr('orient', 'auto-start-reverse').attr('markerUnits', 'strokeWidth')
   .append('path').attr('d', 'M0,1 L9,5 L0,9 z').attr('class', 'swoop-head');
 
 // draw the labels for the current region at zoom transform t
-function drawLabels(t){
+export function drawLabels(t){
   labelLayer.selectAll('*').remove(); labelLayer.interrupt().style('opacity', 0);
   if(selectedRegion === 'world') drawWorldNotes(t);
   else if(!drawRegionLabels(t)) return;   // no named country in this region

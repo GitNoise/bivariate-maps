@@ -3,6 +3,13 @@
 // recursively split with randomly displaced midpoints, and many faint deformed layers are stacked, so colour builds up
 // in the interior and feathers unevenly at the edges.
 
+import {WORLD, DATA} from './data.js';
+import {WATERCOLOUR} from './settings.js';
+import {clearCssCache, cssVar, fillOf, isLowestClass, isHighestRisk, ZOOM_REGIONS, REGION_MEMBER_SET, selectedRegion, inSelectedRegion} from './classes.js';
+import {largestRing, segDist2} from './geometry.js';
+import {mapbox, MAP_WIDTH, MAP_HEIGHT, svg, countryShapes, toSvgPath, shapeBounds, countryIdOf, ringsOf, zoomLayer, unitsPerPx, setZooming, frameOf} from './map.js';
+import {drawLabels} from './labels.js';
+
 const washCanvas = document.createElement('canvas'); washCanvas.className = 'wc'; washCanvas.setAttribute('aria-hidden', 'true');
 mapbox.insertBefore(washCanvas, svg.node());
 const washContext = washCanvas.getContext('2d');
@@ -10,7 +17,8 @@ const washContext = washCanvas.getContext('2d');
 // ---- the brush ---------------------------------------------------------------------------------------------
 // seeded random numbers (Park-Miller), so the same country gets the same brushwork every time
 let brushSeed = 1;
-const brushRandom = () => (brushSeed = (brushSeed * 16807) % 2147483647) / 2147483647;
+export function seedBrush(seed){ brushSeed = seed; }
+export const brushRandom = () => (brushSeed = (brushSeed * 16807) % 2147483647) / 2147483647;
 // normally distributed (Box-Muller)
 function brushGaussian(){
   let u = 0, v = 0;
@@ -37,7 +45,7 @@ function simplifyRing(pts, tol){
 }
 
 // split every edge `iters` times, moving each new midpoint randomly by up to `amp` of the edge's length (at most maxd)
-function deformRing(ring, iters, amp, maxd){
+export function deformRing(ring, iters, amp, maxd){
   let r = ring;
   for(let it = 0; it < iters; it++){
     const out = [];
@@ -53,7 +61,7 @@ function deformRing(ring, iters, amp, maxd){
 }
 
 // add a ring to a Path2D as a smooth closed curve through its edge midpoints
-function smoothRing(p, r){
+export function smoothRing(p, r){
   const n = r.length, mid = i => [(r[i][0] + r[(i + 1) % n][0]) / 2, (r[i][1] + r[(i + 1) % n][1]) / 2];
   const m0 = mid(n - 1);
   p.moveTo(m0[0], m0[1]);
@@ -119,7 +127,7 @@ function blotchMask(b, u){
 const isRaised = id => !!id && isHighestRisk(DATA.countries[id]);
 
 // one merged shape per region for the raised countries, with no seams between neighbours (null if there are none)
-const pieceCache = {};
+export const pieceCache = {};
 function raisedPiece(key){
   if(key in pieceCache) return pieceCache[key];
   const ids = key === 'world' ? null : (REGION_MEMBER_SET[key] || new Set());   // world view: every raised country
@@ -165,12 +173,12 @@ function regionSheet(key){
 const isDarkTheme = () => { const c = d3.rgb(getComputedStyle(document.body).backgroundColor); return c.r + c.g + c.b < 300; };
 
 // paint the washes (built by buildWash) at zoom transform t
-function drawWash(t, washes){
+export function drawWash(t, washes){
   if(!washes) return;
   const s = washCanvas.width / MAP_WIDTH;
   washContext.setTransform(1, 0, 0, 1, 0, 0); washContext.clearRect(0, 0, washCanvas.width, washCanvas.height);
   washContext.setTransform(s * t.k, 0, 0, s * t.k, s * t.x, s * t.y);
-  cssCache = {};   // theme colours: read once per frame
+  clearCssCache();   // theme colours: read once per frame
   const nodata = cssVar('--nodata'), nodataDeep = cssVar('--nodatadeep'), bg = cssVar('--bg'), dark = isDarkTheme();
 
   const paintOne = c => {
@@ -209,7 +217,7 @@ function drawWash(t, washes){
 }
 
 // ---- size and zoom ---------------------------------------------------------------------------------------
-function sizeWash(){
+export function sizeWash(){
   const r = svg.node().getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   washCanvas.style.width = r.width + 'px'; washCanvas.style.height = r.height + 'px';
   washCanvas.width = Math.max(1, Math.round(r.width * dpr)); washCanvas.height = Math.max(1, Math.round(r.height * dpr));
@@ -217,7 +225,7 @@ function sizeWash(){
 
 // the washes are brushed once per map width, at the deepest regional zoom; zooming only scales them.
 // Only the current width is kept.
-let washCache = {}, washTransform = d3.zoomIdentity, washesShown = null;   // washTransform: the transform on screen; washesShown: the washes on screen
+export let washCache = {}, washTransform = d3.zoomIdentity, washesShown = null;   // washTransform: the transform on screen; washesShown: the washes on screen
 function washesForWidth(){
   const id = 'all@' + Math.round(mapbox.clientWidth);
   if(!washCache[id]){
@@ -226,9 +234,11 @@ function washesForWidth(){
   }
   return washCache[id];
 }
+// show the washes for the current width (after a resize or a change of measure)
+export function refitWashes(){ washesShown = washesForWidth(); }
 
 // zoom the map and its wash to transform t over dur ms (zoomTo has cleared the labels and set isZooming); the labels are drawn when it ends
-function zoomWashTo(t, dur){
+export function zoomWashTo(t, dur){
   const target = washesForWidth();
   const iz = d3.interpolate([washTransform.x, washTransform.y, washTransform.k], [t.x, t.y, t.k]);
   d3.select(washCanvas).interrupt().transition().duration(dur).ease(d3.easeCubicInOut)
@@ -241,7 +251,7 @@ function zoomWashTo(t, dur){
       washTransform = t; washesShown = target;
       zoomLayer.attr('transform', t.toString());
       drawWash(t, target);
-      isZooming = false;
+      setZooming(false);
       drawLabels(t);
     });
 }

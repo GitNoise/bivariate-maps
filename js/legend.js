@@ -1,5 +1,12 @@
 // El Niño × food security: the diamond legend in the map's corner, its cells painted with the same watercolour brush as the map.
 
+import {SHORTFALL_THRESHOLDS, WATERCOLOUR} from './settings.js';
+import {MEASURE_DATA} from './measures.js';
+import {selectedMeasure, cellColour, NAMED_CELLS} from './classes.js';
+import {bbox} from './geometry.js';
+import {mapbox, legendContainer, legendOnMap} from './map.js';
+import {seedBrush, brushRandom, deformRing, smoothRing} from './watercolour.js';
+
 // a legend cell's wash (fixed seed), as an image; cached per colour, coverage and shape
 const legendCellCache = {};
 function legendCellImage(pts, colour, cover, seed){
@@ -10,7 +17,7 @@ function legendCellImage(pts, colour, cover, seed){
   const c = document.createElement('canvas'); c.width = Math.ceil(w * S); c.height = Math.ceil(h * S);
   const g = c.getContext('2d');
   g.setTransform(S, 0, 0, S, -x0 * S, -y0 * S);
-  brushSeed = seed;
+  seedBrush(seed);
   // the cell spills 2-5% past its box
   const spill = 1.02 + brushRandom() * 0.03, cx0 = d3.mean(pts, p => p[0]), cy0 = d3.mean(pts, p => p[1]);
   const base = deformRing(pts.map(p => [cx0 + (p[0] - cx0) * spill, cy0 + (p[1] - cy0) * spill]), 1, 0.3, 1.2);
@@ -84,7 +91,7 @@ function legendScale(){
 }
 
 // draw the legend, then crop its viewBox to the drawing so it renders as large as possible in the corner
-function drawLegend(){
+export function drawLegend(){
   legendContainer.innerHTML = legendMarkup();
   const legendSvg = legendContainer.querySelector('svg');
   if(!legendSvg) return;

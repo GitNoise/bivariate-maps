@@ -23,15 +23,16 @@ Facts live in `js/data.js` and `js/measures.js`; editorial choices live in `js/s
 | `js/measures.js` | Written by `build_measures.py`: the second measures (values, classes, yearly series, thresholds), their scores, and each country's test results. |
 | `js/classes.js` | What a country's colour means (its class on each axis), which countries are named, and which belong to each zoom region. Draws nothing. |
 | `js/geometry.js` | Small geometry helpers for label placement and the swoopy arrows. |
-| `js/map.js` | The SVG layers, crisis borders, how each view is framed, and `redrawMap()`. |
+| `js/map.js` | The SVG layers, crisis borders and how each view is framed. |
+| `js/redraw.js` | `redrawMap()`, which redraws everything for the current state, and `zoomTo()`, which switches the region. |
 | `js/watercolour.js` | The watercolour washes on a canvas under the map, the raised highest-risk countries, and the zoom transition. |
 | `js/labels.js` | Text on the map: notes on the crisis clusters in the world view, and the names of the highest-risk countries when zoomed in. |
 | `js/legend.js` | The diamond legend. |
 | `js/tooltip.js` | The tooltip: a country's figures, and sparklines for its harvests and the selected measure. |
-| `js/explorer.js` | The controls, the score line beside the map, the table of every measure, and starting the page. |
+| `js/explorer.js` | The controls, the score line beside the map, the table of every measure, and starting the page. The page loads this module; it imports the rest. |
 | `js/vendor/topojson-client.min.js` | topojson-client 3.1.0 (ISC licence). d3 7.9.0 loads from cdnjs. |
 
-Scripts load in this order: d3, topojson-client, `js/data.js`, `js/settings.js`, `js/measures.js`, then the drawing code from `js/classes.js` to `js/explorer.js` as listed above (each uses only the ones before it at load).
+The files in `js/` are ES modules: each imports what it uses, so the imports at the top of a file show what it depends on. d3 and topojson-client load first as plain scripts and are used as globals. State shared across modules (the selected measure and region) changes only through setters such as `setSelectedMeasure()`.
 
 ## The analysis
 
@@ -75,4 +76,4 @@ Each target runs one script with `.venv/bin/python` (for example `build_measures
 
 ## Publishing
 
-GitHub Pages serves the folder as it is. Open `index.html` through a web server (for example `python3 -m http.server`) rather than straight from disk, so the scripts load in order.
+GitHub Pages serves the folder as it is. Open `index.html` through a web server (for example `python3 -m http.server`) rather than straight from disk: browsers do not load ES modules from `file://`. `bundle.py` folds the modules into one file for hosts that need that.

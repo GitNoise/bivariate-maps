@@ -1,5 +1,13 @@
 // El Niño × food security: the controls (the measure dropdown and the region buttons), the score line beside the map,
-// the table of every measure, and starting the page. Loaded last.
+// the table of every measure, and starting the page. The page loads this module; it imports the rest.
+
+import {DATA} from './data.js';
+import {MEASURE_DISPLAY, ZOOM_REGION_SHORT_NAME, SOUTHERN_AFRICA} from './settings.js';
+import {MEASURE_DATA, MEASURE_SCORES, TEST_RESULTS} from './measures.js';
+import {selectedMeasure, setSelectedMeasure, isHighestRisk, ZOOM_REGIONS, REGION_MEMBERS, REGION_TITLE, selectedRegion, inSelectedRegion} from './classes.js';
+import {IS_PHONE_LAYOUT} from './map.js';
+import {pieceCache, drawWash, sizeWash, washTransform, washesShown, refitWashes} from './watercolour.js';
+import {redrawMap, zoomTo} from './redraw.js';
 
 // ---- score line: three big numbers for the selected measure, counted for the countries in view -----------------
 // hits, false alarms and misses for a theory over a set of countries, both rounds (2015–16, 2023–24) together.
@@ -21,7 +29,7 @@ function scoreOf(theory, ids){
   return {h, f, m};
 }
 
-function drawScoreLine(){
+export function drawScoreLine(){
   const el = document.getElementById('score');
   if(!el) return;
   const score = scoreOf(selectedMeasure, selectedRegion === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[selectedRegion]);
@@ -57,12 +65,12 @@ const showMeasureDefinition = () => { const def = document.getElementById('axisd
 
 function selectMeasure(measure){
   if(!MEASURE_DATA[measure] || measure === selectedMeasure) return;
-  selectedMeasure = measure;
+  setSelectedMeasure(measure);
   const select = document.getElementById('axissel');
   if(select) select.value = measure;   // keep the dropdown in step when the table switches the measure
   for(const key in pieceCache) delete pieceCache[key];   // which countries are named and raised depends on the measure
   showMeasureDefinition();
-  washesShown = washesForWidth(); redrawMap(); drawWash(washTransform, washesShown); drawScoreTable();
+  refitWashes(); redrawMap(); drawWash(washTransform, washesShown); drawScoreTable();
 }
 
 // ---- controls ----------------------------------------------------------------------------------------------
@@ -87,7 +95,7 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if(window.matchMedia('(max-width: 640px)').matches !== IS_PHONE_LAYOUT){ location.reload(); return; }
-    sizeWash(); washesShown = washesForWidth(); zoomTo(selectedRegion);
+    sizeWash(); refitWashes(); zoomTo(selectedRegion);
   }, 150);
 });
 
