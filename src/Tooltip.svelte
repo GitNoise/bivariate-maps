@@ -18,7 +18,6 @@
   // the selected measure's value and yearly series for the country (series: null where the data has none)
   const value = $derived(r && (view.measure === 'imports' ? r.importShare : MEASURE_DATA[view.measure].values[tip.id]));
   const series = $derived(r && (view.measure === 'imports' ? r.importShareByYear : MEASURE_DATA[view.measure].series?.[tip.id] ?? null));
-  const cuts = $derived(MEASURE_DATA[view.measure].thresholds || []);
   const enYears = $derived(r?.elNinoHarvestYears || []);
   // each year's harvest against a normal year: the country's long-term (LOWESS) trend
   const harvestSpark = $derived(!!r?.harvestVsTrendByYear && pointsOf(r.harvestVsTrendByYear).length > 0);
@@ -34,9 +33,7 @@
     {#if NATIONAL_CRISES[tip.id]}<div class="tr"><span>Crisis</span><b>{NATIONAL_CRISES[tip.id].join(', ')}</b></div>
     {:else if SMALLER_CRISES[tip.id]}<div class="tr"><span>Smaller crisis</span><b>{SMALLER_CRISES[tip.id].join(', ')}</b></div>{/if}
     {#if harvestSpark}<Sparkline values={r.harvestVsTrendByYear} label="Harvest vs normal year" cls="sp-hit" domain={HARVEST_RANGE} {enYears} valueText={signed}/>{/if}
-    {#if measureSpark}<Sparkline values={series} label={spec.series} cls="sp-measure" domain={spec.range} log={spec.log} {cuts} {enYears} valueText={spec.short}/>{/if}
-    {#if (harvestSpark || measureSpark) && (enYears.length || (measureSpark && cuts.length))}
-      <div class="sp-key">{#if enYears.length}<span><i></i>El Niño years</span>{/if}{#if measureSpark && cuts.length}<span><b></b>Class limits</span>{/if}</div>
-    {/if}
+    {#if measureSpark}<Sparkline values={series} label={spec.series} cls="sp-measure" domain={spec.range} log={spec.log} {enYears} valueText={spec.short}/>{/if}
+    {#if (harvestSpark || measureSpark) && enYears.length}<div class="sp-key"><span><i></i>El Niño years</span></div>{/if}
   {/if}
 </div>

@@ -29,7 +29,8 @@ export const MEASURE_DISPLAY = {
   life: {definition: '<b>Life expectancy:</b>&nbsp;years at birth; classes split at the median (74) and 65',
     format: v => `${Math.round(v)} years`, series: 'Life expectancy, years', short: v => `${Math.round(v)}`, range: [40, 85]},
   undernourishment: {definition: '<b>Undernourishment:</b>&nbsp;% of people eating too little, FAO three-year average; classes at 10% and 25%. Chronic hunger makes any shock worse, El Niño or not',
-    format: v => `${Math.round(v)}% undernourished`, series: 'Undernourishment, %', short: v => `${Math.round(v)}%`, range: [0, 60]},
+    format: v => v <= 2.5 ? 'under 2.5% undernourished' : `${Math.round(v)}% undernourished`, series: 'Undernourishment, %',
+    short: v => v <= 2.5 ? '<2.5%' : `${Math.round(v)}%`, range: [0, 60]},   // FAO reports prevalence below 2.5% only as <2.5 (stored as 2.5)
 };
 
 // ---- Watercolour: how the washes are painted (layers, coverage, edge spill, brush size).
