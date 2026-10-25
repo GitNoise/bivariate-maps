@@ -1,4 +1,4 @@
-"""The harvest shortfall: its formula, the El Niño / neutral split, the trend, and the published values in js/data.js."""
+"""The harvest shortfall: its formula, the El Niño / neutral split, the trend, and the published values in src/data.js."""
 import math
 import unittest
 
@@ -73,7 +73,7 @@ class Trend(unittest.TestCase):
 
 
 class PublishedValues(unittest.TestCase):
-    """The pipeline reproduces the shortfalls and p-values in js/data.js."""
+    """The pipeline reproduces the shortfalls and p-values in src/data.js."""
 
     @classmethod
     def setUpClass(cls):

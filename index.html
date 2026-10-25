@@ -17,23 +17,6 @@
     <p class="standfirst">An investigation, not a forecast. We mapped how much El Niño shrinks each country’s cereal harvests, then tested which other measures help explain where those losses became national food crises after the last two El Niños. Switch the map’s second measure to try them yourself.</p>
   </header>
 
-  <figure class="fig">
-    <div class="fig-top">
-      <div class="seg axisseg" id="axisseg" role="group" aria-label="Compare the harvest shortfall with another measure"></div>
-      <div class="seg" id="zoomseg" role="group" aria-label="Zoom to region">
-        <button data-z="world" aria-pressed="true">World</button>
-      </div>
-    </div>
-    <div class="fig-body">
-      <div class="mapbox" id="mapbox"><div class="tip" id="tip"></div><div class="key" id="mapkey"></div></div>
-      <div class="score" id="score" aria-live="polite"></div>
-    </div>
-    <figcaption>
-      <p class="keyline keysym"><span><i class="fiswatch"></i>National food crisis (10%+ in IPC Crisis or worse)</span><span><i class="fiswatch minor"></i>Smaller crisis (5–10%) or UN appeal</span><span><i class="hatchswatch"></i>Shortfall may be chance</span><span><i class="nodataswatch"></i>Too little data</span></p>
-      <p class="keyline keydefs"><span id="axisdef"></span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>
-      <p class="source">Sources: FAO, via Our World in Data; NOAA.</p>
-    </figcaption>
-  </figure>
     <section class="scores" id="scores">
       <h3>Every measure, tested</h3>
       <p class="snote">Drawn as it would have looked before each El Niño. A country is flagged with a harvest shortfall of 5% or more and the middle or top class of the second measure. Click a row to show it on the map.</p>
@@ -103,8 +86,6 @@
 </article>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="js/vendor/topojson-client.min.js"></script>
-<script type="module" src="js/explorer.js"></script>   <!-- imports the other modules in js/ -->
+<script type="module" src="/src/main.js"></script>   <!-- the figure and the score table (src/); the rest of the page is this HTML -->
 </body>
 </html>

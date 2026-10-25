@@ -1,6 +1,8 @@
 // El Niño × food security: editorial and visual settings that the drawing code reads.
 // Facts live in data.js; choices live here.
 
+import * as d3 from 'd3';
+
 // ---- Map frame: the area the world projection fits, and small countries drawn as dots in the world view.
 export const WORLD_FRAME = {type:'Polygon', coordinates:[[[-120,-48],[179.9,-48],[179.9,62],[-120,62],[-120,-48]]]};   // reaches 180° so New Zealand is not clipped
 // small countries get a marker so they stay visible (Lesotho, Eswatini, El Salvador...)

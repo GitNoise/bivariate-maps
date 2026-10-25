@@ -3,16 +3,18 @@
 // recursively split with randomly displaced midpoints, and many faint deformed layers are stacked, so colour builds up
 // in the interior and feathers unevenly at the edges.
 
+import * as d3 from 'd3';
+import * as topojson from 'topojson-client';
 import {WORLD, DATA} from './data.js';
 import {WATERCOLOUR} from './settings.js';
-import {clearCssCache, cssVar, fillOf, isLowestClass, isHighestRisk, ZOOM_REGIONS, REGION_MEMBER_SET, selectedRegion, inSelectedRegion} from './classes.js';
+import {clearCssCache, cssVar, fillOf, isLowestClass, isHighestRisk, ZOOM_REGIONS, REGION_MEMBER_SET, inSelectedRegion} from './classes.js';
 import {largestRing, segDist2} from './geometry.js';
-import {mapbox, MAP_WIDTH, MAP_HEIGHT, svg, countryShapes, toSvgPath, shapeBounds, countryIdOf, ringsOf, zoomLayer, unitsPerPx, setZooming, frameOf} from './map.js';
-import {drawLabels} from './labels.js';
+import {MAP_WIDTH, MAP_HEIGHT, countryShapes, toSvgPath, shapeBounds, countryIdOf, ringsOf, unitsPerPx, frameOf} from './map.js';
+import {view, zoom, els} from './state.svelte.js';
 
-const washCanvas = document.createElement('canvas'); washCanvas.className = 'wc'; washCanvas.setAttribute('aria-hidden', 'true');
-mapbox.insertBefore(washCanvas, svg.node());
-const washContext = washCanvas.getContext('2d');
+// the canvas Map.svelte draws under the SVG
+let washCanvas, washContext;
+export function attachWash(canvas){ washCanvas = canvas; washContext = canvas.getContext('2d'); }
 
 // ---- the brush ---------------------------------------------------------------------------------------------
 // seeded random numbers (Park-Miller), so the same country gets the same brushwork every time
@@ -74,7 +76,7 @@ export function smoothRing(p, r){
 // With a transform t, countries off screen are skipped.
 function buildWash(z, t){
   // map units per screen pixel at this zoom, with the brushwork scaled down on small maps so edges stay fine
-  const brush = Math.max(0.5, Math.min(1, mapbox.clientWidth / 900));
+  const brush = Math.max(0.5, Math.min(1, els.mapbox.clientWidth / 900));
   const u = unitsPerPx() / z * brush;
   const out = [];
   countryShapes.features.forEach((f, n) => {
@@ -127,7 +129,7 @@ function blotchMask(b, u){
 const isRaised = id => !!id && isHighestRisk(DATA.countries[id]);
 
 // one merged shape per region for the raised countries, with no seams between neighbours (null if there are none)
-export const pieceCache = {};
+const pieceCache = {};
 function raisedPiece(key){
   if(key in pieceCache) return pieceCache[key];
   const ids = key === 'world' ? null : (REGION_MEMBER_SET[key] || new Set());   // world view: every raised country
@@ -200,60 +202,42 @@ export function drawWash(t, washes){
   };
 
   // 1. the surface: every country that is not raised. Crisis countries are marked by their dark border only
-  if(selectedRegion === 'world'){
+  if(view.region === 'world'){
     washes.filter(c => !isRaised(c.id)).forEach(paintOne);
     castRaisedShadow('world', dark, bg);
   } else {
     // zoomed in: the dimmed countries outside the region first, then the region on a plain paper sheet
     // (so the dimmed neighbours' paint does not bleed into it), then its flat countries on the sheet
     washes.filter(c => !inSelectedRegion(c.id)).forEach(paintOne);
-    washContext.fillStyle = bg; washContext.globalAlpha = 1; washContext.fill(regionSheet(selectedRegion), 'nonzero');
+    washContext.fillStyle = bg; washContext.globalAlpha = 1; washContext.fill(regionSheet(view.region), 'nonzero');
     washes.filter(c => inSelectedRegion(c.id) && !isRaised(c.id)).forEach(paintOne);
-    castRaisedShadow(selectedRegion, dark, bg);
+    castRaisedShadow(view.region, dark, bg);
   }
   // 2. the raised countries' washes on top (their shadow was cast from the group's outer edge)
   washes.filter(c => inSelectedRegion(c.id) && isRaised(c.id)).forEach(paintOne);
   washContext.globalAlpha = 1;
 }
 
-// ---- size and zoom ---------------------------------------------------------------------------------------
+// ---- size -----------------------------------------------------------------------------------------------
 export function sizeWash(){
-  const r = svg.node().getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const r = els.svg.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   washCanvas.style.width = r.width + 'px'; washCanvas.style.height = r.height + 'px';
   washCanvas.width = Math.max(1, Math.round(r.width * dpr)); washCanvas.height = Math.max(1, Math.round(r.height * dpr));
 }
 
-// the washes are brushed once per map width, at the deepest regional zoom; zooming only scales them.
-// Only the current width is kept.
-export let washCache = {}, washTransform = d3.zoomIdentity, washesShown = null;   // washTransform: the transform on screen; washesShown: the washes on screen
-function washesForWidth(){
-  const id = 'all@' + Math.round(mapbox.clientWidth);
+// the washes are brushed once per map width, at the deepest regional zoom (wherever the legend sits); zooming only
+// scales them. Only the current width is kept.
+let washCache = {};
+export function washesForWidth(){
+  const id = 'all@' + Math.round(els.mapbox.clientWidth);
   if(!washCache[id]){
-    const deepestZoom = Math.max(...ZOOM_REGIONS.map(zone => frameOf(zone).k));
+    const deepestZoom = Math.max(...ZOOM_REGIONS.map(zone => frameOf(zone, false).k));
     washCache = {[id]: buildWash(deepestZoom, null)};
   }
   return washCache[id];
 }
-// show the washes for the current width (after a resize or a change of measure)
-export function refitWashes(){ washesShown = washesForWidth(); }
-
-// zoom the map and its wash to transform t over dur ms (zoomTo has cleared the labels and set isZooming); the labels are drawn when it ends
-export function zoomWashTo(t, dur){
-  const target = washesForWidth();
-  const iz = d3.interpolate([washTransform.x, washTransform.y, washTransform.k], [t.x, t.y, t.k]);
-  d3.select(washCanvas).interrupt().transition().duration(dur).ease(d3.easeCubicInOut)
-    .tween('wash', () => q => {
-      const [x, y, kk] = iz(q), T = d3.zoomIdentity.translate(x, y).scale(kk);
-      zoomLayer.attr('transform', T.toString());
-      drawWash(T, target);
-    })
-    .on('end interrupt', () => {
-      washTransform = t; washesShown = target;
-      zoomLayer.attr('transform', t.toString());
-      drawWash(t, target);
-      setZooming(false);
-      drawLabels(t);
-    });
+// repaint after a change of measure: which countries are named and raised depends on it
+export function repaintWashes(){
+  for(const key in pieceCache) delete pieceCache[key];
+  drawWash(zoom.settled, washesForWidth());
 }
-
-sizeWash();

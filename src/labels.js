@@ -1,23 +1,39 @@
-// El Niño × food security: text on the map. In the world view, short notes on the clusters of crisis countries;
-// zoomed into a region, the names of the highest-risk countries, on the country or beside it with a swoopy arrow.
+// El Niño × food security: where the text on the map goes. In the world view, short notes on the clusters of crisis
+// countries; zoomed into a region, the names of the highest-risk countries, on the country or beside it with a swoopy
+// arrow. Labels.svelte draws what placeLabels() returns.
 
+import * as d3 from 'd3';
+import * as topojson from 'topojson-client';
 import {WORLD, DATA, NATIONAL_CRISES} from './data.js';
 import {WORLD_NOTES, CLUSTER_KM} from './settings.js';
-import {isHighestRisk, shortName, zoomRegionOf, REGION_MEMBER_SET, selectedRegion} from './classes.js';
+import {isHighestRisk, shortName, zoomRegionOf, REGION_MEMBER_SET} from './classes.js';
 import {bbox, largestRing, boxesOverlap, insideBox, segDist2, pushApart, clampToFrame, swoopPath, arcPoints, segsCross} from './geometry.js';
-import {mapbox, MAP_WIDTH, MAP_HEIGHT, svg, countryShapes, projection, countryIdOf, ringsOf, defs, unitsPerPx, legendBox, isZooming} from './map.js';
+import {MAP_WIDTH, MAP_HEIGHT, countryShapes, projection, countryIdOf, ringsOf, unitsPerPx, legendBox} from './map.js';
+import {view, els} from './state.svelte.js';
 
-export const labelLayer = svg.append('g').attr('class', 'callouts').style('opacity', 0);
-defs.append('marker').attr('id', 'swoopHead').attr('viewBox', '0 0 10 10').attr('refX', 8.5).attr('refY', 5)
-  .attr('markerWidth', 5.5).attr('markerHeight', 5.5).attr('orient', 'auto-start-reverse').attr('markerUnits', 'strokeWidth')
-  .append('path').attr('d', 'M0,1 L9,5 L0,9 z').attr('class', 'swoop-head');
+// the labels for the region on screen at zoom transform t: {notes, callouts, swoops}, or null when a region has no
+// named country. layer: the label layer, where text is measured (its classes set the font)
+export function placeLabels(layer, t){
+  if(view.region === 'world') return {notes: worldNotes(layer, t), callouts: [], swoops: []};
+  return regionLabels(layer, t);
+}
 
-// draw the labels for the current region at zoom transform t
-export function drawLabels(t){
-  labelLayer.selectAll('*').remove(); labelLayer.interrupt().style('opacity', 0);
-  if(selectedRegion === 'world') drawWorldNotes(t);
-  else if(!drawRegionLabels(t)) return;   // no named country in this region
-  labelLayer.transition().duration(isZooming ? 0 : 220).style('opacity', 1);
+// the box text lines take in the label layer: written in a group of class groupClass, measured, removed.
+// lines: [{x, y, cls, size, text}]
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function measure(layer, groupClass, lines){
+  const g = document.createElementNS(SVG_NS, 'g');
+  g.setAttribute('class', groupClass);
+  lines.forEach(line => {
+    const text = document.createElementNS(SVG_NS, 'text');
+    if(line.x != null) text.setAttribute('x', line.x);
+    text.setAttribute('y', line.y); text.setAttribute('class', line.cls); text.style.fontSize = line.size; text.textContent = line.text;
+    g.appendChild(text);
+  });
+  layer.appendChild(g);
+  const box = g.getBBox();
+  g.remove();
+  return box;
 }
 
 // ---- world view: notes on the clusters of crisis borders -------------------------------------------------
@@ -93,10 +109,10 @@ function isLand(mask, sx, sy){
 
 // short notes on the clusters, without leader lines. A force simulation pulls each note towards its cluster and pushes it
 // off land, off the other notes and off the legend, so it settles in the nearest open water
-function drawWorldNotes(t){
-  const u = unitsPerPx(), narrow = mapbox.clientWidth <= 800;   // narrower maps only get the phone notes
+function worldNotes(layer, t){
+  const u = unitsPerPx(), narrow = els.mapbox.clientWidth <= 800;   // narrower maps only get the phone notes
   const notes = WORLD_NOTES.filter(n => (!narrow || n.phone) && crisisClusters().some(k => k.ids.includes(n.member)));
-  if(!notes.length) return;
+  if(!notes.length) return [];
   const mask = landMaskFor(t), pad = 5 * u, edge = 6 * u;
   const keyBox = legendBox(u, pad);
 
@@ -119,13 +135,13 @@ function drawWorldNotes(t){
 
   // write each note (left-aligned lines), measure it, and aim it at the geographic centre of its cluster
   const nodes = notes.map(n => {
-    const g = labelLayer.append('g').attr('class', 'wnote'), titles = [].concat(n.title);
-    [...titles, ...n.lines].forEach((text, i) => g.append('text').attr('x', 0).attr('y', i * 13.5 * u)
-      .attr('class', i < titles.length ? 'wn-title' : 'wn-body').style('font-size', (i < titles.length ? 12 : 11.5) * u + 'px').text(text));
+    const titles = [].concat(n.title);
+    const lines = [...titles, ...n.lines].map((text, i) => ({x: 0, y: i * 13.5 * u, text,
+      cls: i < titles.length ? 'wn-title' : 'wn-body', size: (i < titles.length ? 12 : 11.5) * u + 'px'}));
     const cluster = crisisClusters().find(k => k.ids.includes(n.member));
     const centre = projection(d3.geoCentroid({type: 'FeatureCollection', features: cluster.features}));
-    const bb = g.node().getBBox(), tx = t.applyX(centre[0]), ty = t.applyY(centre[1]);
-    return {g, bx: bb.x, by: bb.y, w: bb.width, h: bb.height, tx, ty, x: tx, y: ty};
+    const bb = measure(layer, 'wnote', lines), tx = t.applyX(centre[0]), ty = t.applyY(centre[1]);
+    return {lines, bx: bb.x, by: bb.y, w: bb.width, h: bb.height, tx, ty, x: tx, y: ty};
   });
   const overlap = (a, b) => Math.abs(a.x - b.x) * 2 < a.w + b.w + 2 * pad && Math.abs(a.y - b.y) * 2 < a.h + b.h + 2 * pad;
   const onLegend = n => keyBox && n.x + n.w / 2 > keyBox[0] && n.x - n.w / 2 < keyBox[2] && n.y + n.h / 2 > keyBox[1] && n.y - n.h / 2 < keyBox[3];
@@ -171,7 +187,7 @@ function drawWorldNotes(t){
     }
     if(best && best.d < here){ n.x = best.x; n.y = best.y; } else { n.x = px; n.y = py; }
   });
-  nodes.forEach(n => n.g.attr('transform', `translate(${(n.x - n.w / 2 - n.bx).toFixed(1)},${(n.y - n.h / 2 - n.by).toFixed(1)})`));
+  return nodes.map(n => ({lines: n.lines, transform: `translate(${(n.x - n.w / 2 - n.bx).toFixed(1)},${(n.y - n.h / 2 - n.by).toFixed(1)})`}));
 }
 
 // ---- zoomed in: the names of the highest-risk countries --------------------------------------------------
@@ -203,11 +219,11 @@ function anchorOf(f, t){
 
 // Each name goes on its country where it covers at most half of it; the others sit beside the region, placed by a force
 // simulation, with a swoopy arrow to their country. Arrow crossings are then removed by bending arrows and swapping labels.
-function drawRegionLabels(t){
+function regionLabels(layer, t){
   const u = unitsPerPx(), edge = 6 * u, pad = 3 * u;
   const keyBox = legendBox(u, pad);   // the legend, in viewBox units: labels stay clear of it
-  const items = layoutLabelItems(t, u);
-  if(!items.length) return false;
+  const items = layoutLabelItems(layer, t, u);
+  if(!items.length) return null;
   const placed = placeOnCountries(items, u, edge, pad, keyBox);
   const outs = items.filter(it => !it.inline);   // the labels that go beside the region
   // fixed obstacles for those: the labels on countries, the legend, every arrow point, and the countries being pointed at
@@ -223,31 +239,28 @@ function drawRegionLabels(t){
   if(outs.length) placeBeside(items, outs, u, edge, separate, blocked);
   outs.forEach(it => setBox(it, pad));
   routeArrows(items, outs, u, edge, pad, separate, blocked);
-  // draw
-  items.forEach(it => {
+  // each name centred on its spot; the arrows of the labels beside the region, drawn under the names
+  const callouts = items.map(it => {
     const x = it.inline ? it.a[0] : it.x, y = it.inline ? it.a[1] : it.y;
-    it.g.attr('transform', `translate(${x},${y - it.by - it.h / 2})`).selectAll('text').attr('text-anchor', 'middle');
-    if(it.inline) return;
-    labelLayer.insert('path', ':first-child').attr('class', 'swoop').attr('d', swoopPath(it.p0, it.a, it.arc[0], it.arc[1]))
-      .attr('marker-end', 'url(#swoopHead)').style('stroke-width', (1 * u) + 'px');
+    return {id: it.id, name: it.name, y: it.textY, size: it.size, transform: `translate(${x},${y - it.by - it.h / 2})`};
   });
-  return true;
+  const swoops = outs.map(it => ({id: it.id, d: swoopPath(it.p0, it.a, it.arc[0], it.arc[1]), width: (1 * u) + 'px'})).reverse();
+  return {notes: [], callouts, swoops};
 }
 
 // a label placed beside its country: its box from centre (x, y) and size (w, h), padded
 const boxOf = (it, pad) => [it.x - it.w / 2 - pad, it.y - it.h / 2 - pad, it.x + it.w / 2 + pad, it.y + it.h / 2 + pad];
 const setBox = (it, pad) => { it.box = boxOf(it, pad); };
 
-// one item per named country in the region: its label (written and measured), its anchor point and its outline on screen
-function layoutLabelItems(t, u){
-  const ids = REGION_MEMBER_SET[selectedRegion];
+// one item per named country in the region: its label (name only; the figures are in the tooltip) and its measured size,
+// its anchor point and its outline on screen
+function layoutLabelItems(layer, t, u){
+  const ids = REGION_MEMBER_SET[view.region];
   return countryShapes.features.filter(f => ids.has(f.id) && isHighestRisk(DATA.countries[f.id])).map(f => {
-    const r = DATA.countries[f.id];
-    const g = labelLayer.append('g').attr('class', 'callout');
-    g.append('text').attr('class', 'ml-name').attr('y', 4 * u).style('font-size', (11 * u) + 'px').text(shortName(r));   // name only; figures are in the tooltip
-    const bb = g.node().getBBox();
+    const name = shortName(DATA.countries[f.id]), textY = 4 * u, size = (11 * u) + 'px';
+    const bb = measure(layer, 'callout', [{y: textY, cls: 'ml-name', size, text: name}]);
     const rings = ringsOf(f).map(rg => rg.map(p => [t.applyX(p[0]), t.applyY(p[1])]));
-    return {id: f.id, f, r, g, w: bb.width, h: bb.height, bx: bb.x, by: bb.y, a: anchorOf(f, t), rings, pts: rings.flat()};
+    return {id: f.id, name, textY, size, w: bb.width, h: bb.height, bx: bb.x, by: bb.y, a: anchorOf(f, t), rings, pts: rings.flat()};
   });
 }
 

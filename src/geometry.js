@@ -1,5 +1,6 @@
 // El Niño × food security: small geometry helpers for label placement and arrows. Points are [x, y]; boxes are [x0, y0, x1, y1].
 
+import * as d3 from 'd3';
 import {MAP_WIDTH, MAP_HEIGHT} from './map.js';
 
 // bounding box of a list of points

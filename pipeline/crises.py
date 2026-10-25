@@ -1,4 +1,4 @@
-"""The recorded food crises after the last two El Niños, from the hand-edited tables in js/data.js.
+"""The recorded food crises after the last two El Niños, from the hand-edited tables in src/data.js.
 
 National crisis: at least 10% of the whole population in IPC Phase 3 (Crisis) or worse, with weather extremes as the main
 driver (solid border on the map). Smaller crisis: 5–10%, or a joint government–UN El Niño appeal (dashed border).

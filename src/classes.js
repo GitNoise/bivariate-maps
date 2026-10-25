@@ -1,12 +1,13 @@
 // El Niño × food security: what each country's colour means, which countries are named, and which belong to each zoom region.
-// Lookups on js/data.js, js/settings.js and js/measures.js only; nothing here draws.
+// Lookups on src/data.js, src/settings.js and src/measures.js only; nothing here draws.
 
 import {DATA, UN_SUBREGION, UN_SUBREGION_NAME, NATIONAL_CRISES} from './data.js';
 import {SHORTFALL_THRESHOLDS, WEAK_SIGNAL_P, ZOOM_REGION_OF_SUBREGION, ZOOM_REGION_EXCEPTIONS, ZOOM_REGION_NAME, ZOOM_REGION_ORDER, SHORT_NAMES, SHORT_NAME_RULES} from './settings.js';
 import {MEASURE_DATA} from './measures.js';
+import {view} from './state.svelte.js';
 
 // ---- theme colours ----------------------------------------------------------------------------------
-// CSS custom properties, cached; redrawMap() and drawWash() clear the cache, so a theme change shows on the next frame
+// CSS custom properties, cached; drawWash() clears the cache, so a theme change shows on the next frame
 let cssCache = {};
 export function clearCssCache(){ cssCache = {}; }
 export function cssVar(name){
@@ -15,9 +16,6 @@ export function cssVar(name){
 }
 
 // ---- the two axes of the bivariate map ------------------------------------------------------------
-// the measure on the second axis: cereal imports by default; the explorer can switch it (its classes are in js/measures.js)
-export let selectedMeasure = 'imports';
-export function setSelectedMeasure(measure){ selectedMeasure = measure; }
 const ID_OF_RECORD = new Map(Object.entries(DATA.countries).map(([id, r]) => [r, id]));   // country record -> M49 code
 
 // first axis, 0 to 2: how much smaller El Niño harvests are, cut at SHORTFALL_THRESHOLDS. null: harvests not tested
@@ -29,9 +27,9 @@ export function shortfallClass(r){
   return 0;
 }
 
-// second axis, 0 to 2: the class of the selected measure, from js/measures.js. null: no data
+// second axis, 0 to 2: the class of the selected measure, from src/measures.js. null: no data
 export function measureClass(r){
-  const c = MEASURE_DATA[selectedMeasure].classes[ID_OF_RECORD.get(r)];
+  const c = MEASURE_DATA[view.measure].classes[ID_OF_RECORD.get(r)];
   return c == null ? null : c;
 }
 
@@ -113,8 +111,5 @@ ZOOM_REGIONS.forEach(zone => {
   REGION_TITLE[zone] = ZOOM_REGION_NAME[zone] || UN_SUBREGION_NAME[zone];
 });
 
-export let selectedRegion = 'world';   // the region on screen
-export function setSelectedRegion(key){ selectedRegion = key; }
-
 // is the country in the selected region? (the world view includes every country)
-export const inSelectedRegion = id => selectedRegion === 'world' || REGION_MEMBER_SET[selectedRegion].has(id);
+export const inSelectedRegion = id => view.region === 'world' || REGION_MEMBER_SET[view.region].has(id);

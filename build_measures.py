@@ -1,4 +1,4 @@
-"""Write js/measures.js: the second measures for the map (values, classes, yearly series, thresholds), their walk-forward
+"""Write src/measures.js: the second measures for the map (values, classes, yearly series, thresholds), their walk-forward
 scores, and each country's test results, so the page can count hits and false alarms for any view.
 
     python build_measures.py
@@ -28,7 +28,7 @@ DIGITS = {'hdi': 3}   # decimals of the values on the map; the others have 1
 
 def yearly_tables():
     """The yearly series for the tooltip's sparklines, as tables of iso3, year, value, rounded as the page shows them.
-    Imports' series is in js/data.js."""
+    Imports' series is in src/data.js."""
     gdp = measures.GDP_PER_PERSON.assign(value=measures.GDP_PER_PERSON['value'].round().astype(int))
     return {'gdp': gdp,
             'poverty': measures.POVERTY.assign(value=measures.POVERTY['value'].map(lambda v: round(v, 1))),
@@ -115,7 +115,7 @@ def main():
         {'MEASURE_DATA': (data, False, ''),
          'MEASURE_SCORES': (score_table, True, ''),
          'TEST_RESULTS': (test_results(), True, 'per country: one value per round (2015–16, 2023–24)')})
-    print('js/measures.js written:', len(text) // 1024, 'KB | countries per measure:', {m: len(data[m]['classes']) for m in MEASURES},
+    print('src/measures.js written:', len(text) // 1024, 'KB | countries per measure:', {m: len(data[m]['classes']) for m in MEASURES},
           '| series:', {m: len(data[m]['series']) for m in MEASURES if 'series' in data[m]})
     for scope, theories in score_table.items():
         print(scope)

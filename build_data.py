@@ -1,4 +1,4 @@
-"""Build the country data for the map: the DATA line of js/data.js, and data/processed/cereal_import_dependency_ratio_1961_2022.csv.
+"""Build the country data for the map: the DATA line of src/data.js, and data/processed/cereal_import_dependency_ratio_1961_2022.csv.
 
 Per country:
   importShare            cereal import dependency (%), the 2020–22 average, from FAO's food balance sheets
@@ -102,7 +102,7 @@ def main():
     write_country_data(data)
     write_import_csv(ratios)
     tested = sum(1 for c in data['countries'].values() if 'harvestShortfall' in c)
-    print(f"js/data.js updated: {len(data['countries'])} countries on the map, {tested} with a harvest shortfall, imports to {imports.LAST_SHEET_YEAR}")
+    print(f"src/data.js updated: {len(data['countries'])} countries on the map, {tested} with a harvest shortfall, imports to {imports.LAST_SHEET_YEAR}")
 
 
 if __name__ == '__main__':

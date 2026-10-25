@@ -93,7 +93,7 @@ MEASURES = [m for m in ALL_MEASURES if m != 'undernourishment' or not UNDERNOURI
 LIFE_EXPECTANCY_MEDIAN = float(RECENT['life_expectancy'].reindex(
     [M49_TO_ISO3[m49] for m49 in PAGE_ORDER if m49 in TESTED and m49 in M49_TO_ISO3]).median())
 
-# the thresholds as (middle class from, weak class from); written to js/measures.js, where the tooltip marks them
+# the thresholds as (middle class from, weak class from); written to src/measures.js, where the tooltip marks them
 THRESHOLDS = {'imports': (25, 50), 'poverty': (25, 50), 'undernourishment': (10, 25),
               'hdi': (0.700, 0.550), 'life': (LIFE_EXPECTANCY_MEDIAN, 65)}
 # World Bank income groups, with the thresholds of the time

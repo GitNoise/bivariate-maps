@@ -1,8 +1,8 @@
 """The countries on the map, as the page has them, and their cereal production. Shared by measures and walkforward.
 
-    COUNTRIES        the country records of js/data.js (name, import share, harvest shortfall, series), in page order
+    COUNTRIES        the country records of src/data.js (name, import share, harvest shortfall, series), in page order
     PAGE_ORDER       their M49 codes in that order
-    SOUTHERN_AFRICA  the southern African countries, from js/settings.js: the baseline that flags every country there
+    SOUTHERN_AFRICA  the southern African countries, from src/settings.js: the baseline that flags every country there
     PRODUCTION       cereal production: a table of m49, year, tonnes, from data/raw/cereal-production.csv
     TESTED           the countries with a harvest shortfall on the map and production data
 """

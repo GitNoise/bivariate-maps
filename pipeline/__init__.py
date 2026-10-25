@@ -6,8 +6,8 @@
     imports      FAO food balance sheets and the cereal import dependency ratio
     countries    the countries on the map, the southern Africa list, cereal production: shared by the modules below
     measures     the second measures (imports, income, poverty, HDI, life expectancy, undernourishment) and their classes
-    page_files   reading and writing the page's data files in js/
-    crises       the recorded food crises, from js/data.js
+    page_files   reading and writing the page's data files in src/
+    crises       the recorded food crises, from src/data.js
     walkforward  the map drawn as it would have looked before each crisis period, and its scores
 
 The scripts that use it: build_data.py and build_measures.py (they write the page's data), trace.py (writes TRACE.md),
