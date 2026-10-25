@@ -1,17 +1,17 @@
 // El Niño × food security: text on the map. In the world view, short notes on the clusters of crisis countries;
 // zoomed into a region, the names of the highest-risk countries, on the country or beside it with a swoopy arrow.
 
-const calloutG = svg.append('g').attr('class', 'callouts').style('opacity', 0);
+const labelLayer = svg.append('g').attr('class', 'callouts').style('opacity', 0);
 defs.append('marker').attr('id', 'swoopHead').attr('viewBox', '0 0 10 10').attr('refX', 8.5).attr('refY', 5)
   .attr('markerWidth', 5.5).attr('markerHeight', 5.5).attr('orient', 'auto-start-reverse').attr('markerUnits', 'strokeWidth')
   .append('path').attr('d', 'M0,1 L9,5 L0,9 z').attr('class', 'swoop-head');
 
 // draw the labels for the current region at zoom transform t
-function drawCallouts(t){
-  calloutG.selectAll('*').remove(); calloutG.interrupt().style('opacity', 0);
-  if(region === 'world') drawWorldNotes(t);
+function drawLabels(t){
+  labelLayer.selectAll('*').remove(); labelLayer.interrupt().style('opacity', 0);
+  if(selectedRegion === 'world') drawWorldNotes(t);
   else if(!drawRegionLabels(t)) return;   // no named country in this region
-  calloutG.transition().duration(zoomAnimating ? 0 : 220).style('opacity', 1);
+  labelLayer.transition().duration(isZooming ? 0 : 220).style('opacity', 1);
 }
 
 // ---- world view: notes on the clusters of crisis borders -------------------------------------------------
@@ -21,9 +21,9 @@ let clusterCache = null;
 function crisisClusters(){
   if(clusterCache) return clusterCache;
   const geoms = WORLD.objects.countries.geometries;
-  const idx = geoms.map((g, i) => i).filter(i => FOOD_INSEC[fiOf(geoms[i])]);
+  const idx = geoms.map((g, i) => i).filter(i => NATIONAL_CRISES[countryIdOf(geoms[i])]);
   const featCache = {}, feat = i => featCache[i] || (featCache[i] = topojson.feature(WORLD, geoms[i]));   // shape straight from the map file
-  const zone = i => zoneOf(fiOf(geoms[i]));
+  const zone = i => zoomRegionOf(countryIdOf(geoms[i]));
   const neighbours = topojson.neighbors(geoms);
 
   // up to about 150 points along each country's outer rings, for the distance tests
@@ -63,7 +63,7 @@ function crisisClusters(){
     });
     if(best) join(i, best.j);
   });
-  return (clusterCache = groups().map(gr => ({ids: gr.map(i => fiOf(geoms[i])), features: gr.map(feat)})));
+  return (clusterCache = groups().map(gr => ({ids: gr.map(i => countryIdOf(geoms[i])), features: gr.map(feat)})));
 }
 
 // where the land is, at transform t: the alpha channel of every country filled on a canvas the size of the viewBox
@@ -73,11 +73,11 @@ function landMaskFor(t){
   if(landMask && landMask.key === key) return landMask;
   // full resolution (S = 1), so small islands are in the mask
   const S = 1, mc = document.createElement('canvas');
-  mc.width = Math.ceil(W / S); mc.height = Math.ceil(H / S);
+  mc.width = Math.ceil(MAP_WIDTH / S); mc.height = Math.ceil(MAP_HEIGHT / S);
   const ctx = mc.getContext('2d');
   ctx.setTransform(t.k / S, 0, 0, t.k / S, t.x / S, t.y / S);
-  const gp = d3.geoPath(proj, ctx);
-  ctx.beginPath(); countries.features.forEach(f => gp(f)); ctx.fill();
+  const gp = d3.geoPath(projection, ctx);
+  ctx.beginPath(); countryShapes.features.forEach(f => gp(f)); ctx.fill();
   return (landMask = {key, S, w: mc.width, h: mc.height, a: ctx.getImageData(0, 0, mc.width, mc.height).data});
 }
 function isLand(mask, sx, sy){
@@ -113,11 +113,11 @@ function drawWorldNotes(t){
 
   // write each note (left-aligned lines), measure it, and aim it at the geographic centre of its cluster
   const nodes = notes.map(n => {
-    const g = calloutG.append('g').attr('class', 'wnote'), titles = [].concat(n.title);
+    const g = labelLayer.append('g').attr('class', 'wnote'), titles = [].concat(n.title);
     [...titles, ...n.lines].forEach((text, i) => g.append('text').attr('x', 0).attr('y', i * 13.5 * u)
       .attr('class', i < titles.length ? 'wn-title' : 'wn-body').style('font-size', (i < titles.length ? 12 : 11.5) * u + 'px').text(text));
     const cluster = crisisClusters().find(k => k.ids.includes(n.member));
-    const centre = proj(d3.geoCentroid({type: 'FeatureCollection', features: cluster.features}));
+    const centre = projection(d3.geoCentroid({type: 'FeatureCollection', features: cluster.features}));
     const bb = g.node().getBBox(), tx = t.applyX(centre[0]), ty = t.applyY(centre[1]);
     return {g, bx: bb.x, by: bb.y, w: bb.width, h: bb.height, tx, ty, x: tx, y: ty};
   });
@@ -223,7 +223,7 @@ function drawRegionLabels(t){
     const x = it.inline ? it.a[0] : it.x, y = it.inline ? it.a[1] : it.y;
     it.g.attr('transform', `translate(${x},${y - it.by - it.h / 2})`).selectAll('text').attr('text-anchor', 'middle');
     if(it.inline) return;
-    calloutG.insert('path', ':first-child').attr('class', 'swoop').attr('d', swoopPath(it.p0, it.a, it.arc[0], it.arc[1]))
+    labelLayer.insert('path', ':first-child').attr('class', 'swoop').attr('d', swoopPath(it.p0, it.a, it.arc[0], it.arc[1]))
       .attr('marker-end', 'url(#swoopHead)').style('stroke-width', (1 * u) + 'px');
   });
   return true;
@@ -235,10 +235,10 @@ const setBox = (it, pad) => { it.box = boxOf(it, pad); };
 
 // one item per named country in the region: its label (written and measured), its anchor point and its outline on screen
 function measureLabels(t, u){
-  const ids = REGION_SET[region];
-  return countries.features.filter(f => ids.has(f.id) && isLabelled(DATA.world[f.id])).map(f => {
-    const r = DATA.world[f.id];
-    const g = calloutG.append('g').attr('class', 'callout');
+  const ids = REGION_MEMBER_SET[selectedRegion];
+  return countryShapes.features.filter(f => ids.has(f.id) && isHighestRisk(DATA.countries[f.id])).map(f => {
+    const r = DATA.countries[f.id];
+    const g = labelLayer.append('g').attr('class', 'callout');
     g.append('text').attr('class', 'ml-name').attr('y', 4 * u).style('font-size', (11 * u) + 'px').text(shortName(r));   // name only; figures are in the tooltip
     const bb = g.node().getBBox();
     const rings = ringsOf(f).map(rg => rg.map(p => [t.applyX(p[0]), t.applyY(p[1])]));
@@ -270,7 +270,7 @@ function placeOnCountries(items, u, edge, pad, keyBox){
   const placed = [];
   items.slice().sort((a, b) => b.area - a.area).forEach(it => {
     const b = it.inBox;
-    const inFrame = b[0] >= edge && b[2] <= W - edge && b[1] >= edge && b[3] <= H - edge;
+    const inFrame = b[0] >= edge && b[2] <= MAP_WIDTH - edge && b[1] >= edge && b[3] <= MAP_HEIGHT - edge;
     // nor may it cover another country's arrow point
     const coversAnchor = items.some(o => o !== it && o.a[0] > b[0] - 4 * u && o.a[0] < b[2] + 4 * u && o.a[1] > b[1] - 4 * u && o.a[1] < b[3] + 4 * u);
     const fits = it.coverage <= 0.5 && inFrame && !placed.some(q => boxesOverlap(b, q)) && !(keyBox && boxesOverlap(b, keyBox)) && !coversAnchor;
@@ -359,7 +359,7 @@ function routeArrows(items, outs, u, edge, pad, separate, blocked){
       let len = 0;
       for(let i = 1; i < best.arc.length; i++) len += Math.hypot(best.arc[i][0] - best.arc[i - 1][0], best.arc[i][1] - best.arc[i - 1][1]);
       it.p0 = p0; it.arc = best.bend; drawn.push(best.arc);
-      cost += best.k + len / (0.08 * W) + (len > 90 * u ? 40 + (len - 90 * u) / u : 0);
+      cost += best.k + len / (0.08 * MAP_WIDTH) + (len > 90 * u ? 40 + (len - 90 * u) / u : 0);
     });
     return cost;
   };
@@ -380,7 +380,7 @@ function routeArrows(items, outs, u, edge, pad, separate, blocked){
     for(let a = 0; a < outs.length; a++){
       for(let b = a + 1; b < outs.length; b++){
         const p = outs[a], q = outs[b];
-        if(Math.hypot(p.x - q.x, p.y - q.y) > 0.3 * W) continue;   // only near neighbours
+        if(Math.hypot(p.x - q.x, p.y - q.y) > 0.3 * MAP_WIDTH) continue;   // only near neighbours
         const restore = swap(p, q);
         const c2 = outs.some(blocked) ? Infinity : chooseBends();
         if(c2 < cost - 1e-6){ cost = c2; improved = true; } else restore();

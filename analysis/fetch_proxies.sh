@@ -9,3 +9,5 @@ curl -sL -o covid_latest.csv https://raw.githubusercontent.com/owid/covid-19-dat
 # yearly HDI and life expectancy, for the tooltip's sparklines only (fetched 23 October 2026)
 curl -sL -o human-development-index.csv 'https://ourworldindata.org/grapher/human-development-index.csv?v=1&csvType=full&useColumnShortNames=false'   # UNDP HDI, via Our World in Data
 curl -sL -o life-expectancy.csv         'https://ourworldindata.org/grapher/life-expectancy.csv?v=1&csvType=full&useColumnShortNames=false'           # UN World Population Prospects, via Our World in Data
+# FAO prevalence of undernourishment (SDG 2.1.1), the sixth measure (fetched 25 October 2026)
+curl -sL -o undernourishment.csv 'https://ourworldindata.org/grapher/prevalence-of-undernourishment.csv?v=1&csvType=full&useColumnShortNames=false'   # FAO, via Our World in Data

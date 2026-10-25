@@ -1,13 +1,13 @@
 // El Niño × food security: the tooltip. A country's figures for both axes of the map, its crises, and two sparklines:
 // its harvests against trend, and the selected measure over time where the data has a series.
 
-const SPARK_FROM = 1980, SPARK_TO = DATA.plast;   // both sparklines share one timeline
+const SPARK_FROM = 1980, SPARK_TO = DATA.harvestsLastYear;   // both sparklines share one timeline
 
 // a sparkline for a yearly series (values from SPARK_FROM, null where missing), drawn through the years that have a value.
 // The first and last values are marked with a dot and labelled (valueText: how a value reads); when years are missing
 // (poverty surveys), every value gets a small dot. domain: the fixed [lo, hi] of the y-axis (log: on a log scale);
 // cuts: class limits, drawn as faint dashed lines; enYears: El Niño harvest years, shaded
-function sparkline(values, {label, cls, domain, log, cuts = [], enYears, valueText}){
+function sparklineHtml(values, {label, cls, domain, log, cuts = [], enYears, valueText}){
   const points = values.map((v, i) => [SPARK_FROM + i, v]).filter(p => p[1] != null && (!log || p[1] > 0));
   if(!points.length) return '';
   const w = 236, h = 40, labelRoom = 30;   // room for the end values left and right of the line
@@ -33,69 +33,69 @@ function sparkline(values, {label, cls, domain, log, cuts = [], enYears, valueTe
 
 // the selected measure's value for a country, as text
 function measureText(id, r){
-  const v = AXIS === 'imports' ? r.now : AXES[AXIS].vals[id];
-  return v == null ? 'no data' : MEASURES[AXIS].format(v);
+  const v = selectedMeasure === 'imports' ? r.importShare : MEASURE_DATA[selectedMeasure].values[id];
+  return v == null ? 'no data' : MEASURE_DISPLAY[selectedMeasure].format(v);
 }
 
 // the selected measure's yearly series for a country (from SPARK_FROM), or null where the data has none
 function measureSeries(id, r){
-  if(AXIS === 'imports') return r.imp;
-  return AXES[AXIS].series ? AXES[AXIS].series[id] : null;
+  if(selectedMeasure === 'imports') return r.importShareByYear;
+  return MEASURE_DATA[selectedMeasure].series ? MEASURE_DATA[selectedMeasure].series[id] : null;
 }
 
 function tooltipHtml(id, r){
   const row = (label, value) => `<div class="tr"><span>${label}</span><b>${value}</b></div>`;
-  const shortfall = Math.round(-r.hgap);
-  const harvest = r.hgap == null ? 'not tested'
-    : shortfall > 0 ? `${shortfall}% smaller${isWeak(r) ? ' <i>weak signal</i>' : ''}` : 'no shortfall';
-  const crisis = FOOD_INSEC[id] ? row('Crisis', FOOD_INSEC[id].join(', '))
-    : FOOD_INSEC_MINOR[id] ? row('Smaller crisis', FOOD_INSEC_MINOR[id].join(', ')) : '';
+  const shortfall = Math.round(r.harvestShortfall);
+  const harvest = r.harvestShortfall == null ? 'not tested'
+    : shortfall > 0 ? `${shortfall}% smaller${isWeakSignal(r) ? ' <i>weak signal</i>' : ''}` : 'no shortfall';
+  const crisis = NATIONAL_CRISES[id] ? row('Crisis', NATIONAL_CRISES[id].join(', '))
+    : SMALLER_CRISES[id] ? row('Smaller crisis', SMALLER_CRISES[id].join(', ')) : '';
 
-  const enYears = r.hev ? r.hev.map(e => e[0]) : [];
+  const enYears = r.elNinoHarvestYears || [];
   let sparks = '';
-  if(r.han){   // each year's harvest against a normal year: the country's long-term (LOWESS) trend
+  if(r.harvestVsTrendByYear){   // each year's harvest against a normal year: the country's long-term (LOWESS) trend
     const signed = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(Math.round(v)) + '%';
-    sparks += sparkline(r.han, {label: 'Harvest vs normal year', cls: 'sp-hit', domain: HARVEST_RANGE, enYears, valueText: signed});
+    sparks += sparklineHtml(r.harvestVsTrendByYear, {label: 'Harvest vs normal year', cls: 'sp-hit', domain: HARVEST_RANGE, enYears, valueText: signed});
   }
   const series = measureSeries(id, r);
   let limits = false;
   if(series){   // the selected measure, with the limits of its map classes
-    const spec = MEASURES[AXIS], cuts = AXES[AXIS].cuts || [];
-    const spark = sparkline(series, {label: spec.series, cls: 'sp-measure', domain: spec.range, log: spec.log, cuts, enYears, valueText: spec.short});
+    const spec = MEASURE_DISPLAY[selectedMeasure], cuts = MEASURE_DATA[selectedMeasure].thresholds || [];
+    const spark = sparklineHtml(series, {label: spec.series, cls: 'sp-measure', domain: spec.range, log: spec.log, cuts, enYears, valueText: spec.short});
     sparks += spark; limits = !!spark && cuts.length > 0;
   }
   const keyItems = (enYears.length ? '<span><i></i>El Niño years</span>' : '') + (limits ? '<span><b></b>Class limits</span>' : '');
   const key = sparks && keyItems ? `<div class="sp-key">${keyItems}</div>` : '';
-  return `<b>${shortName(r)}</b>${row('El Niño harvest', harvest)}${row(AXES[AXIS].label, measureText(id, r))}${crisis}${sparks}${key}`;
+  return `<b>${shortName(r)}</b>${row('El Niño harvest', harvest)}${row(MEASURE_DATA[selectedMeasure].label, measureText(id, r))}${crisis}${sparks}${key}`;
 }
 
 // shown for countries with a colour or a crisis border, in the selected region
-const hasTip = id => DATA.world[id] && (fillFor(id) || FOOD_INSEC[id]) && inRegion(id);
+const hasTooltip = id => DATA.countries[id] && (fillOf(id) || NATIONAL_CRISES[id]) && inSelectedRegion(id);
 
 // the tooltip's content, rebuilt only when the country or the measure changes. false: this country has no tooltip
-let tipKey = null, tipId = null;   // tipId: the country the tooltip is open for
-function fillTip(id){
-  if(!hasTip(id)){ hideTip(); return false; }
-  const key = id + '|' + AXIS;
-  if(key !== tipKey){ tipKey = key; tip.innerHTML = tooltipHtml(id, DATA.world[id]); }
-  tipId = id;
+let tooltipKey = null, tooltipCountry = null;   // tooltipCountry: the country the tooltip is open for
+function fillTooltip(id){
+  if(!hasTooltip(id)){ hideTooltip(); return false; }
+  const key = id + '|' + selectedMeasure;
+  if(key !== tooltipKey){ tooltipKey = key; tooltipBox.innerHTML = tooltipHtml(id, DATA.countries[id]); }
+  tooltipCountry = id;
   return true;
 }
 
 // on mouse moves: fill the tooltip for the country under the pointer and move it beside the pointer
-function showTip(ev, d){
-  if(!fillTip(d.id)) return;
+function showTooltip(ev, d){
+  if(!fillTooltip(d.id)) return;
   const box = mapbox.getBoundingClientRect();
   let x = ev.clientX - box.left + 14;
   const y = ev.clientY - box.top + 14;
   if(x + 300 > box.width) x = ev.clientX - box.left - 304;   // flip to the left near the right edge
-  tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.style.opacity = 1;
+  tooltipBox.style.left = x + 'px'; tooltipBox.style.top = y + 'px'; tooltipBox.style.opacity = 1;
 }
-function hideTip(){ tip.style.opacity = 0; tipId = null; }
+function hideTooltip(){ tooltipBox.style.opacity = 0; tooltipCountry = null; }
 
 // after a change of measure or region (paint calls it): refill the open tooltip in place, without waiting for the mouse to move
-function refreshTip(){
-  if(tipId) fillTip(tipId);
+function refreshTooltip(){
+  if(tooltipCountry) fillTooltip(tooltipCountry);
 }
-paths.on('pointermove', showTip).on('pointerleave', hideTip);
-marks.on('pointermove', showTip).on('pointerleave', hideTip);
+countryPaths.on('pointermove', showTooltip).on('pointerleave', hideTooltip);
+smallCountryDots.on('pointermove', showTooltip).on('pointerleave', hideTooltip);

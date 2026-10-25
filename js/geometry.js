@@ -39,8 +39,8 @@ function pushApart(a, b, pad){
 
 // keep a label inside the map frame, at least `edge` from each side
 function clampToFrame(n, edge){
-  n.x = Math.max(edge + n.w / 2, Math.min(W - edge - n.w / 2, n.x));
-  n.y = Math.max(edge + n.h / 2, Math.min(H - edge - n.h / 2, n.y));
+  n.x = Math.max(edge + n.w / 2, Math.min(MAP_WIDTH - edge - n.w / 2, n.x));
+  n.y = Math.max(edge + n.h / 2, Math.min(MAP_HEIGHT - edge - n.h / 2, n.y));
 }
 
 // ---- swoopy arrows (after bizweekgraphics/swoopyarrows): a circular arc from p0 to p1 ---------------------
