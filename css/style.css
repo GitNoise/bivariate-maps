@@ -165,8 +165,6 @@ figcaption .source{font-size:12px;margin-top:2px}
 .scores thead th{color:var(--ink-3);border-bottom:1px solid var(--rule);font-size:12px}
 .scores tbody th{color:var(--ink)}
 .scores .fa{color:var(--ink-3)}
-.scores tr.pick{cursor:pointer}
-.scores tr.pick:hover th{text-decoration:underline}
 .scores tr.cur th,.scores tr.cur td{font-weight:600;color:var(--ink)}
 @media (max-width:560px){ .scores table{font-size:12px} .scores .fa{display:block} }
 
