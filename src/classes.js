@@ -1,19 +1,12 @@
-// El Niño × food security: what each country's colour means, which countries are named, and which belong to each zoom region.
-// Lookups on src/data.js, src/settings.js and src/measures.js only; nothing here draws.
+// El Niño × food security: what each country's colour means, which countries are named, hatched and outlined, and which
+// belong to each zoom region. Lookups on src/data.js, src/settings.js and src/measures.js only; nothing here draws.
 
-import {DATA, UN_SUBREGION, UN_SUBREGION_NAME, NATIONAL_CRISES} from './data.js';
-import {SHORTFALL_THRESHOLDS, WEAK_SIGNAL_P, ZOOM_REGION_OF_SUBREGION, ZOOM_REGION_EXCEPTIONS, ZOOM_REGION_NAME, ZOOM_REGION_ORDER, SHORT_NAMES, SHORT_NAME_RULES} from './settings.js';
+import {DATA, NATIONAL_CRISES, SMALLER_CRISES} from './data.js';
+import {SMALL_COUNTRIES} from './bivariate/world.js';
+import {createRegions} from './bivariate/regions.js';
+import {SHORTFALL_THRESHOLDS, WEAK_SIGNAL_P, SHORT_NAMES, SHORT_NAME_RULES} from './settings.js';
 import {MEASURE_DATA} from './measures.js';
 import {view} from './state.svelte.js';
-
-// ---- theme colours ----------------------------------------------------------------------------------
-// CSS custom properties, cached; drawWash() clears the cache, so a theme change shows on the next frame
-let cssCache = {};
-export function clearCssCache(){ cssCache = {}; }
-export function cssVar(name){
-  if(!cssCache[name]) cssCache[name] = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return cssCache[name];
-}
 
 // ---- the two axes of the bivariate map ------------------------------------------------------------
 const ID_OF_RECORD = new Map(Object.entries(DATA.countries).map(([id, r]) => [r, id]));   // country record -> M49 code
@@ -33,24 +26,20 @@ export function measureClass(r){
   return c == null ? null : c;
 }
 
-// i = shortfall class, j = second-measure class. The palette's ramps are swapped,
-// so shortfall runs to purple (left edge of the diamond) and the second measure to gold (right edge)
-export const cellColour = (i, j) => cssVar(`--bi${j}${i}`);
-
-// a country's colour, or null when either axis has no data (the country is painted grey)
-export function fillOf(id){
-  const r = DATA.countries[id];
-  if(!r) return null;
-  const i = shortfallClass(r);
-  if(i == null) return null;
-  const j = measureClass(r);
-  return j == null ? null : cellColour(i, j);
-}
-
-// the lowest class on both axes is laid on at WATERCOLOUR.low (0: the white paper shows through),
-// so most of the world stays close to bare paper, as in ink-and-wash drawings
-export function isLowestClass(r){
-  return shortfallClass(r) === 0 && measureClass(r) === 0;
+// each country's cell on the map for a measure: [i, j], i = shortfall class, j = the measure's class, for the countries with
+// both (the others are painted grey). Shortfall runs to purple (left edge of the diamond), the measure to gold (right edge);
+// the lowest cell on both axes is laid on at the brush's `low` (0: the white paper shows through), so most of the world stays
+// close to bare paper, as in ink-and-wash drawings. One object per measure, so the map repaints when the measure changes
+const cellCache = {};
+export function cellsFor(measure){
+  if(!cellCache[measure]){
+    cellCache[measure] = {};
+    Object.entries(DATA.countries).forEach(([id, r]) => {
+      const i = shortfallClass(r), j = MEASURE_DATA[measure].classes[id];
+      if(i != null && j != null) cellCache[measure][id] = [i, j];
+    });
+  }
+  return cellCache[measure];
 }
 
 // ---- hatching: a weak harvest signal ---------------------------------------------------------------
@@ -58,58 +47,39 @@ export const isWeakSignal = r => r.shortfallPValue >= WEAK_SIGNAL_P;   // the sh
 
 // hatched only where the colour claims a harvest shortfall. The hatch lies over the true class colour:
 // fading the colour instead would turn it into a different class
-export function showsWeakShortfall(id){
-  const r = DATA.countries[id];
-  return r && shortfallClass(r) >= 1 && isWeakSignal(r);
-}
+export const WEAK_SHORTFALL = new Set(Object.keys(DATA.countries).filter(id => shortfallClass(DATA.countries[id]) >= 1 && isWeakSignal(DATA.countries[id])));
+
+// ---- outlines, dots and frames ---------------------------------------------------------------------------
+// the crisis borders: solid for a national food crisis, dashed for a smaller one or a UN appeal
+export const CRISIS_OUTLINES = {solid: new Set(Object.keys(NATIONAL_CRISES)), dashed: new Set(Object.keys(SMALLER_CRISES))};
+// small countries with data get a dot in the world view
+export const SMALL_WITH_DATA = new Set([...SMALL_COUNTRIES].filter(id => DATA.countries[id]));
+// a region's frame fits the countries with a tested harvest or a crisis; grey no-data countries (Botswana, Cuba, Papua New
+// Guinea) do not pull it
+export const FRAMED = new Set([...Object.keys(DATA.countries).filter(id => DATA.countries[id].harvestShortfall != null), ...Object.keys(NATIONAL_CRISES)]);
 
 // ---- named countries ---------------------------------------------------------------------------------
 // the diamond cells whose countries are named on the map: the highest-risk cell and the two that share an edge with it
 // (i = shortfall class, j = second-measure class)
 export const NAMED_CELLS = [[2,1],[1,2],[2,2]];
 
-// "purple": any mixed colour, a harvest shortfall together with the middle or top class of the second measure
-const hasBothRisks = r => !!r && shortfallClass(r) >= 1 && measureClass(r) >= 1;
-
 // named on the map, and raised off the paper with a shadow: the countries in the NAMED_CELLS
 export const isHighestRisk = r => !!r && NAMED_CELLS.some(([i, j]) => shortfallClass(r) === i && measureClass(r) === j);
+// the named countries for a measure, one set per measure, so the labels are placed again when the measure changes
+const namedCache = {};
+export const namedFor = measure => (namedCache[measure] ??= new Set(Object.entries(cellsFor(measure))
+  .filter(([, [i, j]]) => NAMED_CELLS.some(([a, b]) => a === i && b === j)).map(([id]) => id)));
 
 // country names as shown on the map: SHORT_NAMES first, then the SHORT_NAME_RULES in order
 export const shortName = r => SHORT_NAMES[r.name] || SHORT_NAME_RULES.reduce((name, [from, to]) => name.replace(from, to), r.name);
 
-// ---- zoom regions ---------------------------------------------------------------------------------
-// a country's zoom region: its UN M49 subregion, grouped by ZOOM_REGION_OF_SUBREGION, with ZOOM_REGION_EXCEPTIONS (Sudan)
-export function zoomRegionOf(id){
-  if(ZOOM_REGION_EXCEPTIONS[id]) return ZOOM_REGION_EXCEPTIONS[id];
-  const subregion = UN_SUBREGION[id];
-  return subregion ? (ZOOM_REGION_OF_SUBREGION[subregion] || subregion) : null;
-}
-
-// every region with a labelled country or a recorded El Niño food crisis gets a button
-const zoomRegionStats = {};
-function countInZoomRegion(id, key){
-  const zone = zoomRegionOf(id);
-  if(!zone) return;
-  if(!zoomRegionStats[zone]) zoomRegionStats[zone] = {crises: 0, labelled: 0};
-  zoomRegionStats[zone][key]++;
-}
-Object.entries(DATA.countries).forEach(([id, r]) => { if(isHighestRisk(r)) countInZoomRegion(id, 'labelled'); });
-Object.keys(NATIONAL_CRISES).forEach(id => countInZoomRegion(id, 'crises'));
-
-// known regions in ZOOM_REGION_ORDER; any other region the data brings in follows, most crises first, then most labelled countries
-export const ZOOM_REGIONS = Object.keys(zoomRegionStats).sort((a, b) => {
-  const ia = ZOOM_REGION_ORDER.indexOf(a), ib = ZOOM_REGION_ORDER.indexOf(b);
-  if(ia >= 0 || ib >= 0) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-  return zoomRegionStats[b].crises - zoomRegionStats[a].crises || zoomRegionStats[b].labelled - zoomRegionStats[a].labelled;
-});
-
-// each zoom region's member countries, as a list and as a set, and its full name ('world' is not a zoom region)
-export const REGION_MEMBERS = {}, REGION_MEMBER_SET = {}, REGION_TITLE = {};
-ZOOM_REGIONS.forEach(zone => {
-  REGION_MEMBERS[zone] = Object.keys(UN_SUBREGION).filter(id => zoomRegionOf(id) === zone);
-  REGION_MEMBER_SET[zone] = new Set(REGION_MEMBERS[zone]);
-  REGION_TITLE[zone] = ZOOM_REGION_NAME[zone] || UN_SUBREGION_NAME[zone];
-});
+// ---- zoom regions -----------------------------------------------------------------------------------
+// the UN grouping (src/bivariate/regions.js); every region with a named country (on the first measure) or a recorded El Niño
+// food crisis gets a button, even one with a single country (Southeast Asia and the Pacific: Timor-Leste)
+export const REGIONS = createRegions({min: 1, include: [
+  ...Object.keys(DATA.countries).filter(id => isHighestRisk(DATA.countries[id])),
+  ...Object.keys(NATIONAL_CRISES),
+]});
 
 // is the country in the selected region? (the world view includes every country)
-export const inSelectedRegion = id => view.region === 'world' || REGION_MEMBER_SET[view.region].has(id);
+export const inSelectedRegion = id => view.region === 'world' || REGIONS.members[view.region].has(id);

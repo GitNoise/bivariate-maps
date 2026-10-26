@@ -1,0 +1,69 @@
+/* Bivariate map: the map, its washes and pencil lines, the diamond legend, the tooltip's box and rows, the labels, and the
+   key's swatches for its encodings. Colours come from the page's custom properties (--bi{j}{i}, --land, --ink, ...). */
+
+/* ---- the map ---------------------------------------------------------- */
+.mapbox{position:relative;margin:0;border:0;padding:0}
+.mapbox svg{display:block;width:100%;height:auto}
+.mapbox > canvas.wc{position:absolute;left:0;top:0;pointer-events:none}
+.mapbox > svg{position:relative}
+.country{fill:var(--land);stroke:var(--land-line);stroke-width:.5;vector-effect:non-scaling-stroke}
+.country.hit{cursor:pointer}
+/* the hovered country, traced whole over everything else: a dark line on a paper-coloured halo, so it reads over outlines */
+#mapbox svg .hover-halo{fill:none;stroke:var(--bg);stroke-width:4;stroke-linejoin:round;opacity:.85;vector-effect:non-scaling-stroke}
+#mapbox svg .hover-line{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:opacity .45s ease}
+#mapbox svg .dim{opacity:.12}
+@media (prefers-reduced-motion: reduce){ #mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:none} }
+.smallmark{stroke:var(--inkline);stroke-width:.6;vector-effect:non-scaling-stroke}
+/* ---- watercolour and pencil --------------------------------------- */
+.mapbox .country{stroke:none}
+#mapbox svg .ink{fill:none;stroke:var(--inkline);stroke-width:.5;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.85;transition:opacity .45s ease,stroke-width .45s ease}
+#mapbox svg .ink.dim{opacity:.2}
+#mapbox svg .ink.inreg{opacity:.55;stroke-width:.8;stroke:var(--inkstrong)}
+#mapbox svg .raised-edge{fill:none;stroke:var(--ink);stroke-width:.7;stroke-linejoin:miter;stroke-miterlimit:2;shape-rendering:geometricPrecision;vector-effect:non-scaling-stroke}   /* each raised country's edge: the legend's lifted edge, in the darkest ink */
+#mapbox svg .fi-outline.dim{opacity:.3}   /* same width, just quieter; the raised shadow is dropped outside the region */
+#mapbox.world-view svg .fi-outline:not(.dim){stroke-width:1.6;opacity:1}
+#mapbox svg .fi-outline.minor{stroke-dasharray:4 3}   /* same width and ink as the solid border; only the dashes differ */
+#mapbox svg .fi-outline{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:1;pointer-events:none}
+.hatchline{fill:var(--inkline);opacity:.6}
+.hatchline-l{fill:#FFFFFF;opacity:.7}
+#mapbox svg .smallmark.fi{stroke:var(--ink);stroke-width:1.4}
+/* ---- the legend, on the map ---------------------------------------- */
+.key{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;align-items:center;margin:0 0 10px}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.bilegend{display:inline-flex;align-items:center;gap:10px}
+.key .bilegend{display:block}
+.key .bilegend svg{display:block;max-width:100%;height:auto;overflow:visible}
+.mapbox > .key{position:absolute;left:0;bottom:0;margin:0;pointer-events:none;z-index:3;width:auto;background:color-mix(in srgb, var(--bg) 72%, transparent);border-radius:0;padding:6px 6px 2px}
+.mapbox > .key .bilegend svg{display:block}
+.bl-tk{font-size:9.5px;fill:var(--ink-3)}
+.bl-ax{font-size:10.5px;font-weight:400;fill:var(--ink-2)}
+.bl-top{font-size:11px;font-weight:700;fill:var(--ink)}
+.bl-inkcell{fill:none;stroke:var(--inkstrong);stroke-width:.7;opacity:.9}
+.bilegend .bl-liftpaper{fill:var(--bg)}
+.bilegend .bl-liftedge{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+.tip,#mapkey svg{font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}
+/* ---- the tooltip: its box, the country name, then label-value rows ---- */
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);color:var(--ink);padding:10px 12px;max-width:262px;font-size:13px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;z-index:5}
+@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
+.tip > b{display:block;font-size:14px;margin-bottom:3px}
+.tip em{font-style:normal;font-weight:600;color:var(--ink)}
+.tip .tr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font-size:13px;line-height:1.55;color:var(--ink-2)}
+.tip .tr span{font-size:12.5px;color:var(--ink-3)}
+.tip .tr b{color:var(--ink);font-weight:600;text-align:right}
+.tip .tr i{font-style:normal;font-weight:400;color:var(--ink-3);font-size:12px}
+/* the key's swatches for the map's encodings: hatching, no data, solid and dashed outlines */
+.keyline .hatchswatch{background:repeating-linear-gradient(45deg,var(--bi22) 0 2px,var(--hatch) 2px 3.5px)}
+.keyline .nodataswatch{background:var(--nodata)}
+.keyline .fiswatch{background:transparent;border:2.4px solid var(--ink);box-sizing:border-box}
+.keyline .fiswatch.minor{border:0;background:var(--ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Crect x='1.2' y='1.2' width='11.6' height='11.6' fill='none' stroke='%23000' stroke-width='2.4' pathLength='56' stroke-dasharray='4 3' stroke-dashoffset='2'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Crect x='1.2' y='1.2' width='11.6' height='11.6' fill='none' stroke='%23000' stroke-width='2.4' pathLength='56' stroke-dasharray='4 3' stroke-dashoffset='2'/%3E%3C/svg%3E") center/100% 100% no-repeat}   /* dashed like the map's outlines; a CSS dashed border this small looks solid */
+/* ---- labels on the map ---------------------------------------------- */
+.callouts text{letter-spacing:.06em;text-transform:uppercase;paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;stroke-opacity:.9}
+.callouts .wnote text{letter-spacing:0;text-transform:none;stroke-width:5px;stroke-opacity:1}   /* notes: a full paper outline, so lines under them do not show through */
+.callouts .wn-title{font-weight:600;fill:var(--ink)}
+.callouts .wn-body{fill:var(--ink-2)}
+.callouts .swoop{fill:none;stroke:var(--ink);opacity:.75}
+.callouts .swoop-head{fill:var(--ink);opacity:.75}
+.ml-name{fill:var(--ink);font-weight:600}
+.callouts{font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}

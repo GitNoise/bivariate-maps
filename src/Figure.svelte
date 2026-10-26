@@ -1,41 +1,34 @@
-<!-- The figure: the controls (the measure dropdown and the region buttons), the score line, the map and the key. The map
-     runs the figure's full width; everything else sits on the text column (css/style.css). -->
+<!-- The figure: the controls (the measure dropdown and the region buttons), the bivariate map with its tooltip and labels,
+     the score line and the key. -->
 <script>
-  import {onMount} from 'svelte';
-  import {MEASURE_DISPLAY, ZOOM_REGION_SHORT_NAME} from './settings.js';
+  import {DATA} from './data.js';
+  import {MEASURE_DISPLAY, SHORTFALL_THRESHOLDS, WORLD_NOTES, CLUSTER_KM} from './settings.js';
   import {MEASURE_DATA} from './measures.js';
-  import {ZOOM_REGIONS, REGION_TITLE} from './classes.js';
-  import {PHONE_QUERY, IS_PHONE_LAYOUT} from './map.js';
-  import {sizeWash} from './watercolour.js';
-  import {zoomTo} from './zoom.js';
-  import Map from './Map.svelte';
+  import {cellsFor, namedFor, shortName, NAMED_CELLS, WEAK_SHORTFALL, CRISIS_OUTLINES, SMALL_WITH_DATA, FRAMED, REGIONS} from './classes.js';
+  import {geo} from './map.js';
+  import BivariateMap from './bivariate/BivariateMap.svelte';
+  import RegionButtons from './bivariate/RegionButtons.svelte';
+  import {createLabeller} from './bivariate/labels.js';
+  import Labels from './bivariate/Labels.svelte';
+  import Tooltip from './Tooltip.svelte';
   import ScoreLine from './ScoreLine.svelte';
-  import {view, layout, els} from './state.svelte.js';
+  import {view} from './state.svelte.js';
 
   // the figure has no visible title; its accessible name follows the selected region
   const figureLabel = $derived('Map: El Niño harvest shortfall and cereal import dependence, '
-    + (view.region === 'world' ? 'by country' : REGION_TITLE[view.region]));
+    + (view.region === 'world' ? 'by country' : REGIONS.title[view.region]));
 
-  // fit the wash and the legend to the map's width, and frame the region
-  function refit(region){
-    sizeWash();
-    layout.width = els.mapbox.clientWidth;
-    zoomTo(region);
-  }
-  onMount(() => refit('world'));   // start on the world view
+  // the world view's notes describe the clusters of national food crises
+  const labeller = createLabeller({geo, clusterIds: CRISIS_OUTLINES.solid, regionOf: REGIONS.regionOf, notes: WORLD_NOTES, clusterKm: CLUSTER_KM});
+  const nameOf = id => shortName(DATA.countries[id]);
 
-  // on resize: refit. Crossing the phone breakpoint reloads, because the map's frame is set at load
-  let resizeTimer;
-  function onresize(){
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      if(window.matchMedia(PHONE_QUERY).matches !== IS_PHONE_LAYOUT) location.reload();
-      else refit(view.region);
-    }, 150);
-  }
+  const legend = $derived({
+    a: {title: 'Shortfall', ticks: [String(SHORTFALL_THRESHOLDS[0]), SHORTFALL_THRESHOLDS[1] + '%']},
+    b: {title: MEASURE_DATA[view.measure].axis, ticks: MEASURE_DATA[view.measure].ticks},
+    top: 'Highest-risk countries',
+    label: 'Legend: colour combines the El Niño harvest shortfall (left edge, purple) and the selected measure (right edge, gold); the raised cells at the top are the highest-risk countries',
+  });
 </script>
-
-<svelte:window {onresize}/>
 
 <figure class="fig" aria-label={figureLabel}>
   <div class="fig-top">
@@ -44,16 +37,17 @@
         {#each Object.keys(MEASURE_DATA) as measure}<option value={measure}>Shortfall + {MEASURE_DATA[measure].label.toLowerCase()}</option>{/each}
       </select>
     </div>
-    <!-- the regions: short button labels, with the full name as the tooltip -->
-    <div class="seg" id="zoomseg" role="group" aria-label="Zoom to region">
-      <button aria-pressed={view.region === 'world'} onclick={() => zoomTo('world')}>World</button>
-      {#each ZOOM_REGIONS as zone}
-        <button aria-pressed={view.region === zone} title={REGION_TITLE[zone]} onclick={() => zoomTo(zone)}>{ZOOM_REGION_SHORT_NAME[zone] || REGION_TITLE[zone]}</button>
-      {/each}
-    </div>
+    <RegionButtons regions={REGIONS} bind:region={view.region}/>
   </div>
-  <div class="score" id="score" aria-live="polite"><ScoreLine/></div>
-  <Map/>
+  <div class="fig-body">
+    <BivariateMap {geo} cells={cellsFor(view.measure)} raisedCells={NAMED_CELLS} hatched={WEAK_SHORTFALL} outlines={CRISIS_OUTLINES}
+                  small={SMALL_WITH_DATA} regions={REGIONS.members} region={view.region} framed={FRAMED} {legend}
+                  label="World map of El Niño harvest risk and cereal import dependency by country" hasTooltip={id => !!DATA.countries[id] && !!(cellsFor(view.measure)[id] || CRISIS_OUTLINES.solid.has(id))}>
+      {#snippet tooltip(id)}<Tooltip {id}/>{/snippet}
+      {#snippet overlay(map)}<Labels {map} {labeller} region={view.region} members={REGIONS.members[view.region]} named={namedFor(view.measure)} {nameOf}/>{/snippet}
+    </BivariateMap>
+    <div class="score" id="score" aria-live="polite"><ScoreLine/></div>
+  </div>
   <figcaption>
     <p class="keyline keysym"><span><i class="fiswatch"></i>National food crisis (10%+ in IPC Crisis or worse)</span><span><i class="fiswatch minor"></i>Smaller crisis (5–10%) or UN appeal</span><span><i class="hatchswatch"></i>Shortfall may be chance</span><span><i class="nodataswatch"></i>Too little data</span></p>
     <p class="keyline keydefs"><span id="axisdef">{@html MEASURE_DISPLAY[view.measure].definition}</span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>

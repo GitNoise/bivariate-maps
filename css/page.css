@@ -1,0 +1,110 @@
+/* The page shell every case shares: palette and themes, type, the text column, the framed figure and its controls,
+   the caption, the story and method notes. The map's own styles: src/bivariate/bivariate.css. */
+:root{
+  --text:680px;   /* the text column, centred; the figure alone runs wider, by the same amount on both sides */
+  --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
+  --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6; --dep:#2F6380;
+  --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
+  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
+  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
+}}
+:root[data-theme="dark"]{
+  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
+  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
+  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:inherit}
+body{margin:0;background-color:var(--bg);color:var(--ink);font-family:"Source Sans 3","Source Sans Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+main.page{display:block;max-width:1100px;margin:0 auto}   /* the page never grows wider than this; the map's height follows */
+.wrap{position:relative;max-width:1340px;margin:0;padding:48px 28px 72px}
+.wrap > :not(.fig){max-width:var(--text);margin-left:auto;margin-right:auto}
+.pubdate{display:block;margin:0 0 10px;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;color:var(--ink-3);font-variant-numeric:lining-nums tabular-nums;letter-spacing:.01em}
+h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,4.4vw,48px);line-height:1.05;letter-spacing:-.01em;margin:0 0 14px;max-width:20ch}
+
+/* ---- editorial layout ---------------------------------------------- */
+.head{margin:0 0 28px}
+.head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
+.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;text-wrap:pretty}
+.fig{margin:0 0 44px;border:1px solid var(--rule);padding:18px 20px 16px}   /* the figure as one framed unit: controls, map, score line and key */
+@media (max-width:640px){ .fig{padding:12px 12px 10px} }
+/* one control line: the theory dropdown, then the regions (selected filled) */
+.fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:12px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:999px;padding:3px;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-weight:500;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--dep);outline-offset:2px}
+#zoomseg,#axisseg{display:flex;flex-wrap:wrap;gap:2px;border:0;background:none;padding:0;border-radius:0;margin:0}
+#axisseg{order:0;flex:0 0 auto;align-items:center}
+#zoomseg{order:1;flex:1 1 auto;align-items:center}
+#zoomseg button{border:0;background-color:transparent;background-repeat:no-repeat;border-radius:0;padding:6px 8px;color:var(--ink-2);font-size:13px;font-weight:500;transition:color .15s ease}
+#zoomseg button:hover{color:var(--ink);background-color:var(--btnhover)}
+#zoomseg button:focus-visible{outline:2px solid var(--bi02);outline-offset:2px;border-radius:2px}
+#zoomseg button[aria-pressed="true"],#zoomseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn);font-weight:600;box-shadow:none}
+/* a quiet dropdown: thin light border, small grey chevron, the buttons' weight */
+#axissel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--ink);background-color:transparent;
+  border:1px solid var(--rule);border-radius:3px;padding:6px 30px 6px 10px;cursor:pointer;line-height:1.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237A837D' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-size:10px 6px;background-position:right 10px center}
+#axissel:focus-visible{outline:2px solid var(--bi02);outline-offset:2px}
+#axissel:hover{border-color:var(--ink-3)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #axissel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A3ACA6' stroke-width='1.4'/%3E%3C/svg%3E")} }
+
+
+/* ---- typography for the graphic (after Datawrapper's font guidance) ---- */
+.fig{font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}
+
+/* ---- caption: key line and source ------------------------------------ */
+figcaption{border-top:0;padding-top:0;margin-top:20px;max-width:none}
+.keyline{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.keyline span{display:inline-flex;align-items:center;gap:6px}
+/* centre swatches on the capital letters (cap height 0.66em), not the lowercase (x-height 0.49em): the labels start with capitals */
+.keyline i{width:14px;height:14px;border-radius:2px;display:inline-block;position:relative;top:-.087em;flex-shrink:0}
+figcaption .keyline{font-size:12px;color:var(--ink-3);gap:4px 16px;margin:0 0 4px}
+figcaption .keyline b{font-weight:600;color:var(--ink-2)}
+figcaption .keyline i{transform:scale(.85)}
+.source{font-size:12px;color:var(--ink-3);margin:0}
+figcaption .source{font-size:12px;margin-top:2px}
+
+/* ---- story and method ------------------------------------------------ */
+.story{margin:0 0 48px}
+.story p{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.55;margin:0 0 18px;color:var(--ink)}
+.story h3{font-family:"Source Sans 3",system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:26px 0 6px}
+.story h3:first-child{margin-top:0}
+.story .aside{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--ink-2);border-left:0;padding-left:0;margin-top:26px}
+.method{margin:40px 0 0;border-top:0;padding-top:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.method h3{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px;letter-spacing:0}
+.method p{margin:0 0 10px}
+.method a{color:var(--ink);text-decoration-color:var(--ink-3)}
+.method b{color:var(--ink);font-weight:600}
+.method .credit{font-size:13px;color:var(--ink-3);margin:20px 0 0;font-style:italic}
+/* process disclosure: a quiet footnote to the method notes, one rule under the header, plain text */
+.disclosure{margin:18px 0 0;padding-top:0}
+.disclosure .dnote{margin:0 0 8px;color:var(--ink-3);font-size:12px}
+.disclosure table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px;line-height:1.4;color:var(--ink-3)}
+.disclosure th,.disclosure td{text-align:left;padding:3px 10px 3px 0;vertical-align:top;font-weight:400}
+.disclosure thead th{color:var(--ink-2);border-bottom:1px solid var(--rule);padding-bottom:5px}
+.disclosure tbody tr:first-child th,.disclosure tbody tr:first-child td{padding-top:6px}
+.disclosure tbody th{color:var(--ink-2)}
+.disclosure thead th:nth-child(1){width:31%}
+.disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:26%}
+.disclosure thead th:nth-child(4){width:17%}
+@media (max-width:560px){
+  .disclosure table{font-size:11.5px}
+  .disclosure th,.disclosure td{padding:3px 6px 3px 0;overflow-wrap:anywhere;hyphens:auto}
+  .disclosure thead th:nth-child(1){width:30%}
+  .disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:24.5%}
+  .disclosure thead th:nth-child(4){width:21%}
+}
+
+/* ---- phones ------------------------------------------------------------ */
+@media (max-width:640px){
+  .wrap{padding:28px 18px 52px}
+  .head h1{font-size:26px}
+  .story p{font-size:16px}
+  #zoomseg{width:100%}
+}

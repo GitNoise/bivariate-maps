@@ -1,114 +1,9 @@
-:root{
-  --text:680px;   /* the text column, centred; the figure alone runs wider, by the same amount on both sides */
-  --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
-  --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6; --dep:#2F6380;
-  --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
-  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
-  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
-  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
-}}
-:root[data-theme="dark"]{
-  --bg:#171B19; --panel:#1F2422; --inkline:#B9B0A2; --inkstrong:#D8D2C6; --btn:#D8D2C6; --btnhover:#2A302D; --btntext:#171B19; --ink:#EDEEE8; --ink-2:#B7BDB6; --ink-3:#7F8781;
-  --rule:#343B37; --land:#2B322E; --land-line:#171B19; --dep:#7FB0CC;
-  --bi00:#3F3D47; --bi10:#E4D9AC; --bi20:#C8B35A; --bi01:#CBB8D7; --bi11:#C8ADA0; --bi21:#C49E5E; --bi02:#A98BC4; --bi12:#B08AA3; --bi22:#B0765A; --hatch:#171B19; --nodata:#252A27; --nodatadeep:#30363A;
-}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:inherit}
-body{margin:0;background-color:var(--bg);color:var(--ink);font-family:"Source Sans 3","Source Sans Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-main.page{display:block;max-width:1100px;margin:0 auto}   /* the page never grows wider than this; the map's height follows */
-.wrap{position:relative;max-width:1340px;margin:0;padding:48px 28px 72px}
-.wrap > :not(.fig){max-width:var(--text);margin-left:auto;margin-right:auto}
-.pubdate{display:block;margin:0 0 10px;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;color:var(--ink-3);font-variant-numeric:lining-nums tabular-nums;letter-spacing:.01em}
-h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,4.4vw,48px);line-height:1.05;letter-spacing:-.01em;margin:0 0 14px;max-width:20ch}
+/* El Niño × food security: the page shell, the bivariate map, then what only this page has: the tooltip's sparklines, the
+   score line, the scatters and the table. */
+@import "./page.css";
+@import "../src/bivariate/bivariate.css";
 
-/* ---- editorial layout ---------------------------------------------- */
-.head{margin:0 0 28px}
-.head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
-.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;text-wrap:pretty}
-.fig{margin:0 0 44px}
-.fig > :not(.mapbox){max-width:var(--text);margin-left:auto;margin-right:auto}   /* the figure's text on the text column; only the map runs wider */
-/* one control line: the theory dropdown, then the regions (selected filled) */
-.fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:14px}
-.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:999px;padding:3px;background:var(--panel)}
-.seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-weight:500;padding:6px 14px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.seg button:focus-visible{outline:2px solid var(--dep);outline-offset:2px}
-#zoomseg,#axisseg{display:flex;flex-wrap:wrap;gap:2px;border:0;background:none;padding:0;border-radius:0;margin:0}
-#axisseg{order:0;flex:0 0 auto;align-items:center}
-#zoomseg{order:1;flex:1 1 auto;align-items:center}
-#zoomseg button{border:0;background-color:transparent;background-repeat:no-repeat;border-radius:0;padding:6px 8px;color:var(--ink-2);font-size:13px;font-weight:500;transition:color .15s ease}
-#zoomseg button:hover{color:var(--ink);background-color:var(--btnhover)}
-#zoomseg button:focus-visible{outline:2px solid var(--bi02);outline-offset:2px;border-radius:2px}
-#zoomseg button[aria-pressed="true"],#zoomseg button[aria-pressed="true"]:hover{color:var(--btntext);background-color:var(--btn);font-weight:600;box-shadow:none}
-/* a quiet dropdown: thin light border, small grey chevron, the buttons' weight */
-#axissel{appearance:none;-webkit-appearance:none;font:inherit;font-size:13px;font-weight:500;color:var(--ink);background-color:transparent;
-  border:1px solid var(--rule);border-radius:3px;padding:6px 30px 6px 10px;cursor:pointer;line-height:1.4;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237A837D' stroke-width='1.4'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-size:10px 6px;background-position:right 10px center}
-#axissel:focus-visible{outline:2px solid var(--bi02);outline-offset:2px}
-#axissel:hover{border-color:var(--ink-3)}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #axissel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A3ACA6' stroke-width='1.4'/%3E%3C/svg%3E")} }
-
-/* ---- the map ---------------------------------------------------------- */
-.mapbox{position:relative;margin:0;border:0;padding:0}
-.mapbox svg{display:block;width:100%;height:auto}
-.mapbox > canvas.wc{position:absolute;left:0;top:0;pointer-events:none}
-.mapbox > svg{position:relative}
-.country{fill:var(--land);stroke:var(--land-line);stroke-width:.5;vector-effect:non-scaling-stroke}
-.country.hit{cursor:pointer}
-.country.hit:hover{stroke:var(--ink);stroke-width:1}
-#mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:opacity .45s ease}
-#mapbox svg .dim{opacity:.12}
-@media (prefers-reduced-motion: reduce){ #mapbox svg .country, #mapbox svg path[fill^="url(#hatch"]{transition:none} }
-.smallmark{stroke:var(--inkline);stroke-width:.6;vector-effect:non-scaling-stroke}
-.callouts text{letter-spacing:.06em;text-transform:uppercase;paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round;stroke-opacity:.9}
-.callouts .wnote text{letter-spacing:0;text-transform:none}
-.callouts .wn-title{font-weight:600;fill:var(--ink)}
-.callouts .wn-body{fill:var(--ink-2)}
-.callouts .swoop{fill:none;stroke:var(--ink);opacity:.75}
-.callouts .swoop-head{fill:var(--ink);opacity:.75}
-.ml-name{fill:var(--ink);font-weight:600}
-/* ---- watercolour and pencil --------------------------------------- */
-.mapbox .country{stroke:none}
-#mapbox svg .ink{fill:none;stroke:var(--inkline);stroke-width:.5;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.85;transition:opacity .45s ease,stroke-width .45s ease}
-#mapbox svg .ink.dim{opacity:.2}
-#mapbox svg .ink.inreg{opacity:.55;stroke-width:.8;stroke:var(--inkstrong)}
-#mapbox svg .fi-outline.dim{opacity:.3}   /* same width, just quieter; the raised shadow is dropped outside the region */
-#mapbox.world-view svg .fi-outline:not(.dim){stroke-width:1.6;opacity:1}
-#mapbox svg .fi-outline.minor{stroke-dasharray:4 3}   /* same width and ink as the solid border; only the dashes differ */
-#mapbox svg .fi-outline{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:1;pointer-events:none}
-.hatchline{fill:var(--inkline);opacity:.6}
-.hatchline-l{fill:#FFFFFF;opacity:.7}
-#mapbox svg .smallmark.fi{stroke:var(--ink);stroke-width:1.4}
-/* ---- the legend, on the map ---------------------------------------- */
-.key{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;align-items:center;margin:0 0 10px}
-.key span{display:inline-flex;align-items:center;gap:6px}
-.key i{width:14px;height:14px;border-radius:3px;display:inline-block}
-.bilegend{display:inline-flex;align-items:center;gap:10px}
-.key .bilegend{display:block}
-.key .bilegend svg{display:block;max-width:100%;height:auto;overflow:visible}
-.mapbox > .key{position:absolute;left:0;bottom:0;margin:0;pointer-events:none;z-index:3;width:auto;background:color-mix(in srgb, var(--bg) 72%, transparent);border-radius:0;padding:6px 6px 2px}
-.mapbox > .key .bilegend svg{display:block}
-.bl-tk{font-size:9.5px;fill:var(--ink-3)}
-.bl-ax{font-size:10.5px;font-weight:400;fill:var(--ink-2)}
-.bl-top{font-size:11px;font-weight:700;fill:var(--ink)}
-.bl-inkcell{fill:none;stroke:var(--inkstrong);stroke-width:.7;opacity:.9}
-.bilegend .bl-liftpaper{fill:var(--bg)}
-.bilegend .bl-liftedge{fill:none;stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
-/* ---- typography for the graphic (after Datawrapper's font guidance) ---- */
-.fig,.tip,#mapkey svg,.callouts{font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1}
-/* ---- tooltip and its sparklines -------------------------------------- */
-.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);color:var(--ink);padding:10px 12px;max-width:262px;font-size:13px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;z-index:5}
-@media (prefers-reduced-motion: reduce){ .tip{transition:none} }
-.tip > b{display:block;font-size:14px;margin-bottom:3px}
-.tip em{font-style:normal;font-weight:600;color:var(--ink)}
-.tip .tr{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font-size:13px;line-height:1.55;color:var(--ink-2)}
-.tip .tr span{font-size:12.5px;color:var(--ink-3)}
-.tip .tr b{color:var(--ink);font-weight:600;text-align:right}
-.tip .tr i{font-style:normal;font-weight:400;color:var(--ink-3);font-size:12px}
+/* ---- the tooltip's sparklines ---------------------------------------- */
 .tip .sp{margin-top:7px}
 .tip .sp-cap{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);line-height:1.2;margin-bottom:2px}
 .tip .sp svg{display:block;overflow:visible}
@@ -125,30 +20,40 @@ h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font
 .tip .sp-key span{display:inline-flex;align-items:center;gap:5px}
 .tip .sp-key i{width:8px;height:10px;background:var(--ink);opacity:.12;display:inline-block}
 
-/* ---- caption: key line and source ------------------------------------ */
-figcaption{border-top:0;padding-top:0;margin-top:20px;max-width:none}
-.keyline{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--ink-2);margin:0 0 6px}
-.keyline span{display:inline-flex;align-items:center;gap:6px}
-/* centre swatches on the capital letters (cap height 0.66em), not the lowercase (x-height 0.49em): the labels start with capitals */
-.keyline i{width:14px;height:14px;border-radius:2px;display:inline-block;position:relative;top:-.087em;flex-shrink:0}
-.keyline .hatchswatch{background:repeating-linear-gradient(45deg,var(--bi22) 0 2px,var(--hatch) 2px 3.5px)}
-.keyline .nodataswatch{background:var(--nodata)}
-.keyline .fiswatch{background:transparent;border:2.4px solid var(--ink);box-sizing:border-box}
-.keyline .fiswatch.minor{border:0;background:var(--ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Crect x='1.2' y='1.2' width='11.6' height='11.6' fill='none' stroke='%23000' stroke-width='2.4' pathLength='56' stroke-dasharray='4 3' stroke-dashoffset='2'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Crect x='1.2' y='1.2' width='11.6' height='11.6' fill='none' stroke='%23000' stroke-width='2.4' pathLength='56' stroke-dasharray='4 3' stroke-dashoffset='2'/%3E%3C/svg%3E") center/100% 100% no-repeat}   /* dashed like the map's outlines; a CSS dashed border this small looks solid */
-figcaption .keyline{font-size:12px;color:var(--ink-3);gap:4px 16px;margin:0 0 4px}
-figcaption .keyline b{font-weight:600;color:var(--ink-2)}
-figcaption .keyline i{transform:scale(.85)}
-.source{font-size:12px;color:var(--ink-3);margin:0}
-figcaption .source{font-size:12px;margin-top:2px}
-
-/* ---- score line: three big numbers in a row, above the map ------------ */
-.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 20px;margin:0 0 18px}
-.score .scontext{grid-column:1/-1}
+/* ---- score line: three big numbers beside the map -------------------- */
+.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:10px 0 0;max-width:640px}
+.fig-body .score{gap:22px;margin:0}
+/* from 600px: the big numbers sit in their own column to the right of the map, stacked; phones get a row above it */
+@media (min-width:600px){
+  .fig-body{display:grid;grid-template-columns:minmax(0,1fr) 130px;column-gap:20px;align-items:start}
+  .fig-body .score{grid-template-columns:1fr;max-width:none}
+}
+@media (max-width:599px){ .fig-body{display:flex;flex-direction:column} .fig-body .score{order:-1;margin-bottom:10px} .score .scontext{grid-column:1/-1} }
+@media (min-width:600px) and (max-width:899px){ .fig-body .score .sb{font-size:26px} }
 .score .sb{font-family:"Source Sans 3",system-ui,sans-serif;font-weight:600;font-size:30px;line-height:1.15;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
 .score .su{font-weight:400;font-size:14px;color:var(--ink-2)}
 .score .sl{font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.35;text-wrap:balance}
 .score .scontext{font-size:12px;line-height:1.4;color:var(--ink-3);text-wrap:balance}
 @media (max-width:560px){ .score .sb{font-size:28px} .score .su{display:block;font-size:12px} }
+
+/* ---- the companion scatters, one small multiple per measure --------- */
+.scatter{margin:0 0 8px}
+.scatter h3{font-size:15px;font-weight:600;margin:0 0 4px}
+.scatter .snote{font-size:13px;color:var(--ink-3);margin:0 0 12px}
+.sc-grid-wrap{display:grid;gap:16px 20px}
+.sc-panel{margin:0}
+.sc-panel figcaption{margin:0 0 2px;font-size:12px;color:var(--ink-2)}
+.sc-panel.cur figcaption{font-weight:600;color:var(--ink)}   /* the measure on the map */
+.sc-panel svg{display:block;overflow:visible;font-variant-numeric:lining-nums tabular-nums}
+.sc-flag{fill:var(--bi22);opacity:.18}
+.sc-rule{stroke:var(--rule);stroke-width:.6}
+.sc-cut{stroke:var(--ink-3);stroke-width:.8;stroke-dasharray:3 3}
+.sc-tick{font-size:10px;fill:var(--ink-3)}
+.sc-dot{fill:var(--land);stroke:var(--ink-3);stroke-width:.6}
+.sc-dot.crisis{fill:var(--ink);stroke:var(--bg);stroke-width:.8}
+.sc-hover{fill:none;stroke:var(--ink);stroke-width:1.2}
+.sc-label{font-size:11px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+.sc-axes{font-size:12px;color:var(--ink-3);margin:8px 0 0}
 
 /* ---- the matrix of every measure ------------------------------------- */
 .scores{margin:22px 0 0}
@@ -161,42 +66,3 @@ figcaption .source{font-size:12px;margin-top:2px}
 .scores .fa{color:var(--ink-3)}
 .scores tr.cur th,.scores tr.cur td{font-weight:600;color:var(--ink)}
 @media (max-width:560px){ .scores table{font-size:12px} .scores .fa{display:block} }
-
-/* ---- story and method ------------------------------------------------ */
-.story{margin:0 0 48px}
-.story p{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.55;margin:0 0 18px;color:var(--ink)}
-.story h3{font-family:"Source Sans 3",system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--ink);margin:26px 0 6px}
-.story h3:first-child{margin-top:0}
-.story .aside{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--ink-2);border-left:0;padding-left:0;margin-top:26px}
-.method{margin:40px 0 0;border-top:0;padding-top:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
-.method h3{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:13px;font-weight:600;color:var(--ink);margin:0 0 10px;letter-spacing:0}
-.method p{margin:0 0 10px}
-.method a{color:var(--ink);text-decoration-color:var(--ink-3)}
-.method b{color:var(--ink);font-weight:600}
-.method .credit{font-size:13px;color:var(--ink-3);margin:20px 0 0;font-style:italic}
-/* process disclosure: a quiet footnote to the method notes, one rule under the header, plain text */
-.disclosure{margin:18px 0 0;padding-top:0}
-.disclosure .dnote{margin:0 0 8px;color:var(--ink-3);font-size:12px}
-.disclosure table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px;line-height:1.4;color:var(--ink-3)}
-.disclosure th,.disclosure td{text-align:left;padding:3px 10px 3px 0;vertical-align:top;font-weight:400}
-.disclosure thead th{color:var(--ink-2);border-bottom:1px solid var(--rule);padding-bottom:5px}
-.disclosure tbody tr:first-child th,.disclosure tbody tr:first-child td{padding-top:6px}
-.disclosure tbody th{color:var(--ink-2)}
-.disclosure thead th:nth-child(1){width:31%}
-.disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:26%}
-.disclosure thead th:nth-child(4){width:17%}
-@media (max-width:560px){
-  .disclosure table{font-size:11.5px}
-  .disclosure th,.disclosure td{padding:3px 6px 3px 0;overflow-wrap:anywhere;hyphens:auto}
-  .disclosure thead th:nth-child(1){width:30%}
-  .disclosure thead th:nth-child(2),.disclosure thead th:nth-child(3){width:24.5%}
-  .disclosure thead th:nth-child(4){width:21%}
-}
-
-/* ---- phones ------------------------------------------------------------ */
-@media (max-width:640px){
-  .wrap{padding:28px 18px 52px}
-  .head h1{font-size:26px}
-  .story p{font-size:16px}
-  #zoomseg{width:100%}
-}

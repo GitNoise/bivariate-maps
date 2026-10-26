@@ -1,19 +1,21 @@
-<!-- Text on the map (placed by labels.js): notes on the crisis clusters in the world view, the names of the highest-risk
-     countries when zoomed in. Hidden while the map zooms; placed again, and faded in, once it settles. -->
+<!-- Text on the map (placed by labels.js): notes on the clusters in the world view, the names of the named countries
+     when zoomed in. Hidden while the map zooms; placed again, and faded in, once it settles. Drawn as the bivariate map's
+     overlay. -->
 <script>
   import {untrack} from 'svelte';
   import {Tween} from 'svelte/motion';
-  import {placeLabels} from './labels.js';
-  import {view, zoom} from './state.svelte.js';
 
+  // map: the bivariate map's overlay API (its zoom, width and legend box); labeller: from createLabeller(); region: the
+  // view on screen; members: its ids; named: the ids named when zoomed in (a new set places the labels again); nameOf(id)
+  let {map, labeller, region, members, named, nameOf} = $props();
   let layer, placed = $state.raw(null);
   const opacity = new Tween(0, {duration: 220});
   $effect(() => {
-    const t = zoom.settled, moving = zoom.moving;
-    view.region; view.measure;   // which countries are named depends on both
+    const t = map.zoom.settled, moving = map.zoom.moving;
+    const ids = named, view = {region, members, isNamed: id => ids.has(id), nameOf};   // placed again when either changes
     untrack(() => {
       opacity.set(0, {duration: 0});
-      placed = moving ? null : placeLabels(layer, t);
+      placed = moving ? null : labeller.placeLabels(layer, t, map, view);
       if(placed) opacity.set(1);
     });
   });

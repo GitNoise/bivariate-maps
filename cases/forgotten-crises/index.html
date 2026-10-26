@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Need and missing money (draft)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="page">
+<article class="wrap">
+  <header class="head">
+    <h1>Where is the money missing?</h1>
+    <p class="standfirst">Draft. Humanitarian need against the share of each country’s 2025 UN appeals that went unfunded. Outlined: the gaps that persist, funded below the year’s average every year since 2021.</p>
+  </header>
+
+  <div id="figure"></div>
+
+  <section class="method">
+    <h3>How this map is made</h3>
+    <p><b>Need.</b> INFORM Severity (European Commission JRC), January 2025, as the 2025 appeals began: each country’s category, High (above 3) or Very High (above 4) on its 1–5 index; a country INFORM lists only by crisis takes its most severe one. Severe crises without a UN appeal for the country are hatched, coloured by need only.</p>
+    <p><b>Funding.</b> OCHA’s Global Humanitarian Overview 2025, December 2025 figures: each country’s own appeals (needs and response plans, flash appeals and other country plans; regional plans are left out), requirements and funding summed. The tooltip also gives funding per person in need (people in need: the largest figure among the country’s plans, since they overlap): the ask is already trimmed to what seems fundable, so a well-covered appeal does not mean a well-funded crisis.</p>
+    <p><b>Classes.</b> Need follows INFORM’s categories. Unfunded share of the ask, in equal thirds: under 33%, 33–67%, 67% or more. Two thirds went unfunded across all 2025 country appeals, so most countries (22 of 32) are in the top third. The breaks were changed twice after seeing the data, from the average and half of it, then a third and a quarter funded. The funding measure itself was also changed after seeing results, from funding per person in need to the share of the appeal, which moved six countries; per person is in the tooltip.</p>
+    <p><b>Outlines.</b> Persistent gaps: a country’s appeals funded below that year’s share across all country appeals in every year from 2021 to 2025 (OCHA’s Financial Tracking Service; its 2025 figures, updated in October 2026, run a few points above the December figures the colours use, but each year is compared with its own share). The tooltip gives the years in a row below average and with an appeal, and whether DG ECHO names the country’s crisis as forgotten for 2026.</p>
+    <p><b>Regions.</b> The world view’s notes give one finding per region, from the December 2025 figures. Regions as OCHA and ECHO report them. Ukraine, outside them, was half funded: the best-covered appeal over $1 billion.</p>
+    <p><b>Hatching.</b> Severe crises (High or Very High) with no UN appeal for the country in 2025: refugee-hosting countries covered by regional refugee plans (Uganda, Iran, Türkiye, Mexico, Kenya), appeals that stopped (Ethiopia, Libya, Burundi) or none possible (North Korea). Their funding cannot be read from a country appeal.</p>
+    <div class="disclosure">
+      <h3>Process disclosure</h3>
+      <p class="dnote">AI assistance as roles, not percentages. Collaboration: how much back-and-forth each step took.</p>
+      <table>
+        <thead><tr><th scope="col">Process</th><th scope="col">Human</th><th scope="col">AI (Claude)</th><th scope="col">Collaboration</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Idea &amp; framing</th><td>Chose the case; reframed it from “forgotten” to missing money</td><td>Proposed the case and its measures</td><td>High</td></tr>
+          <tr><th scope="row">Method &amp; classes</th><td>Questioned the need measure, the funding measure, the breaks and what the outline means</td><td>Proposed measures and classes; computed the alternatives</td><td>High</td></tr>
+          <tr><th scope="row">Data</th><td>Approved the sources and downloads</td><td>Found the sources; wrote the data step; checked the columns against the files</td><td>Low</td></tr>
+          <tr><th scope="row">Sources &amp; fact-checking</th><td>Spot-checked</td><td>Checked every note’s figures against the data</td><td>Medium</td></tr>
+          <tr><th scope="row">Design</th><td>Led: regions, notes, raised countries, outlines</td><td>Built it on the El Niño page’s map module</td><td>High</td></tr>
+          <tr><th scope="row">Copy</th><td>Directed &amp; edited</td><td>Drafted</td><td>Medium</td></tr>
+          <tr><th scope="row">Final decisions</th><td>Made by me</td><td>None</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="credit">A draft by Patrick Wojda, data visualisation engineer trained in disaster management. Made with Claude; please verify the numbers. Corrections welcome.</p>
+  </section>
+</article>
+</main>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

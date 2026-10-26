@@ -1,7 +1,7 @@
 """Reading and writing the page's data files in src/.
 
-src/data.js holds the map shapes, the country data (written by build_data.py) and hand-edited tables: the recorded crises,
-with a source note on each line, and the UN regions. src/measures.js is written whole by build_measures.py.
+src/data.js holds the country data (written by build_data.py) and hand-edited tables: the recorded crises, with a source
+note on each line. The map shapes and UN regions live in src/bivariate/world.js. src/measures.js is written whole by build_measures.py.
 """
 import json, re
 

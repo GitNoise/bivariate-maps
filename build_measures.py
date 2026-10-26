@@ -1,4 +1,4 @@
-"""Write src/measures.js: the second measures for the map (values, classes, yearly series), their walk-forward
+"""Write src/measures.js: the second measures for the map (values, classes, yearly series, thresholds), their walk-forward
 scores, and each country's test results, so the page can count hits and false alarms for any view.
 
     python build_measures.py
@@ -38,7 +38,7 @@ def yearly_tables():
 
 
 def measure_data():
-    """Per measure: labels, the 2022 value and class of every country with a harvest test, and yearly series."""
+    """Per measure: labels, the 2022 value and class of every country with a harvest test, yearly series, thresholds."""
     table = known_in(MAP_YEAR)
     on_map = [m49 for m49 in PAGE_ORDER if COUNTRIES[m49].get('harvestShortfall') is not None]
     series_sources = yearly_tables()
@@ -56,6 +56,7 @@ def measure_data():
                 yearly = [by_key.get((iso3, year)) for year in SERIES_YEARS]
                 if any(v is not None for v in yearly):
                     out[measure]['series'][m49] = [v if v is None or isinstance(v, int) else float(v) for v in yearly]
+        out[measure]['thresholds'] = [round(t, 3) for t in measures.thresholds(measure, MAP_YEAR)]
     return out
 
 

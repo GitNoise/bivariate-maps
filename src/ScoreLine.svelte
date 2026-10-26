@@ -3,7 +3,7 @@
   import {DATA} from './data.js';
   import {SOUTHERN_AFRICA} from './settings.js';
   import {TEST_RESULTS} from './measures.js';
-  import {isHighestRisk, REGION_MEMBERS, inSelectedRegion} from './classes.js';
+  import {isHighestRisk, REGIONS, inSelectedRegion} from './classes.js';
   import {view} from './state.svelte.js';
 
   // hits, false alarms and misses for a theory over a set of countries, both rounds (2015–16, 2023–24) together.
@@ -24,7 +24,7 @@
     });
     return {h, f, m};
   }
-  const score = $derived(scoreOf(view.measure, view.region === 'world' ? Object.keys(TEST_RESULTS) : REGION_MEMBERS[view.region]));
+  const score = $derived(scoreOf(view.measure, view.region === 'world' ? Object.keys(TEST_RESULTS) : REGIONS.members[view.region]));
   const named = $derived(Object.keys(DATA.countries).filter(id => isHighestRisk(DATA.countries[id])));
   const stats = $derived([
     [named.filter(inSelectedRegion).length, ` of ${named.length}`, 'highest-risk countries in view'],

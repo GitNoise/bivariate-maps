@@ -1,7 +1,6 @@
-// El Niño × food security: small geometry helpers for label placement and arrows. Points are [x, y]; boxes are [x0, y0, x1, y1].
+// Bivariate map: small geometry helpers for the brush, label placement and arrows. Points are [x, y]; boxes are [x0, y0, x1, y1].
 
 import * as d3 from 'd3';
-import {MAP_WIDTH, MAP_HEIGHT} from './map.js';
 
 // bounding box of a list of points
 export function bbox(points){
@@ -43,10 +42,10 @@ export function pushApart(a, b, pad){
   }
 }
 
-// keep a label inside the map frame, at least `edge` from each side
-export function clampToFrame(n, edge){
-  n.x = Math.max(edge + n.w / 2, Math.min(MAP_WIDTH - edge - n.w / 2, n.x));
-  n.y = Math.max(edge + n.h / 2, Math.min(MAP_HEIGHT - edge - n.h / 2, n.y));
+// keep a label inside a frame `width` × `height`, at least `edge` from each side
+export function clampToFrame(n, edge, width, height){
+  n.x = Math.max(edge + n.w / 2, Math.min(width - edge - n.w / 2, n.x));
+  n.y = Math.max(edge + n.h / 2, Math.min(height - edge - n.h / 2, n.y));
 }
 
 // ---- swoopy arrows (after bizweekgraphics/swoopyarrows): a circular arc from p0 to p1 ---------------------

@@ -1,8 +1,10 @@
 # Exact versions the published outputs were built with (pip freeze). Install: pip install -r requirements.lock
+et-xmlfile==2.0.0
 formulaic==1.2.2
 interface_meta==2.0.1
 narwhals==2.27.1
 numpy==2.5.4
+openpyxl==3.1.5
 packaging==26.3
 pandas==3.1.0
 patsy==1.0.3
