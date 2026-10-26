@@ -1,4 +1,5 @@
-<!-- The figure: the controls (the measure dropdown and the region buttons), the map, the score line and the key. -->
+<!-- The figure: the controls (the measure dropdown and the region buttons), the score line, the map and the key. The map
+     runs the figure's full width; everything else sits on the text column (css/style.css). -->
 <script>
   import {onMount} from 'svelte';
   import {MEASURE_DISPLAY, ZOOM_REGION_SHORT_NAME} from './settings.js';
@@ -51,10 +52,8 @@
       {/each}
     </div>
   </div>
-  <div class="fig-body">
-    <Map/>
-    <div class="score" id="score" aria-live="polite"><ScoreLine/></div>
-  </div>
+  <div class="score" id="score" aria-live="polite"><ScoreLine/></div>
+  <Map/>
   <figcaption>
     <p class="keyline keysym"><span><i class="fiswatch"></i>National food crisis (10%+ in IPC Crisis or worse)</span><span><i class="fiswatch minor"></i>Smaller crisis (5–10%) or UN appeal</span><span><i class="hatchswatch"></i>Shortfall may be chance</span><span><i class="nodataswatch"></i>Too little data</span></p>
     <p class="keyline keydefs"><span id="axisdef">{@html MEASURE_DISPLAY[view.measure].definition}</span><span><b>Shortfall:</b>&nbsp;% smaller harvests in El Niño vs neutral years, 1980–2024</span></p>

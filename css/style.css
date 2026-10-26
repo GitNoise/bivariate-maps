@@ -29,8 +29,9 @@ h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font
 .head h1{font-size:clamp(28px,3.4vw,40px);line-height:1.08;max-width:none;margin:0 0 14px;letter-spacing:-.01em;text-wrap:balance}
 .standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:var(--ink-2);margin:0 0 16px;text-wrap:pretty}
 .fig{margin:0 0 44px}
+.fig > :not(.mapbox){max-width:var(--text);margin-left:auto;margin-right:auto}   /* the figure's text on the text column; only the map runs wider */
 /* one control line: the theory dropdown, then the regions (selected filled) */
-.fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:12px}
+.fig-top{display:flex;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 10px;margin-bottom:14px}
 .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:999px;padding:3px;background:var(--panel)}
 .seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-weight:500;padding:6px 14px;border-radius:999px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
@@ -140,16 +141,9 @@ figcaption .keyline i{transform:scale(.85)}
 .source{font-size:12px;color:var(--ink-3);margin:0}
 figcaption .source{font-size:12px;margin-top:2px}
 
-/* ---- score line: three big numbers beside the map -------------------- */
-.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:10px 0 0;max-width:640px}
-.fig-body .score{gap:22px;margin:0}
-/* from 600px: the big numbers sit in their own column to the right of the map, stacked; phones get a row above it */
-@media (min-width:600px){
-  .fig-body{display:grid;grid-template-columns:minmax(0,1fr) 130px;column-gap:20px;align-items:start}
-  .fig-body .score{grid-template-columns:1fr;max-width:none}
-}
-@media (max-width:599px){ .fig-body{display:flex;flex-direction:column} .fig-body .score{order:-1;margin-bottom:10px} .score .scontext{grid-column:1/-1} }
-@media (min-width:600px) and (max-width:899px){ .fig-body .score .sb{font-size:26px} }
+/* ---- score line: three big numbers in a row, above the map ------------ */
+.score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 20px;margin:0 0 18px}
+.score .scontext{grid-column:1/-1}
 .score .sb{font-family:"Source Sans 3",system-ui,sans-serif;font-weight:600;font-size:30px;line-height:1.15;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
 .score .su{font-weight:400;font-size:14px;color:var(--ink-2)}
 .score .sl{font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.35;text-wrap:balance}
