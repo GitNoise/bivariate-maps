@@ -63,7 +63,6 @@
   </BivariateMap>
   <figcaption>
     <p class="keyline keysym"><span><i class="fiswatch minor"></i>Persistent gap: funded below the year’s average every year since {2026 - PERSISTENT_GAP_YEARS}</span><span><i class="hatchswatch paper"></i>Severe crisis without a UN country appeal (refugees covered by regional plans, appeals that stopped, or none possible): colour shows need only</span></p>
-    <p class="keyline keydefs"><span><b>Need:</b>INFORM Severity category, January 2025, in three classes: Medium or lower, High (from 3 on its 1–5 index), Very High (from 4); INFORM’s five levels with the lowest three merged, as no country with a UN appeal is rated below Medium</span><span><b>Unfunded:</b>% of the country’s {DATA.year ?? ''} UN appeals not funded, in thirds: under 33%, 33–67%, 67% or more; across all of them, {Math.round(100 - (DATA.fundedOverall ?? 0))}%</span></p>
-    <p class="source">Sources: OCHA, Global Humanitarian Overview 2025 (December 2025 figures) and Financial Tracking Service; INFORM Severity (European Commission JRC).</p>
+    <p class="keyline keydefs"><span><b>Need</b>INFORM Severity category, January 2025, in three classes: Medium or lower, High (from 3 on its 1–5 index), Very High (from 4); INFORM’s five levels with the lowest three merged, as no country with a UN appeal is rated below Medium</span><span><b>Unfunded</b>% of the country’s {DATA.year ?? ''} UN appeals not funded, in thirds: under 33%, 33–67%, 67% or more; across all of them, {Math.round(100 - (DATA.fundedOverall ?? 0))}%</span><span class="source"><b>Sources</b>OCHA, Global Humanitarian Overview 2025 (December 2025 figures) and Financial Tracking Service; INFORM Severity (European Commission JRC).</span></p>
   </figcaption>
 </figure>

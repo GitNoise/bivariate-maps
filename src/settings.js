@@ -14,17 +14,17 @@ export const HARVEST_RANGE = [-50, 50];
 // reads in the tooltip, and its sparkline: label, end values (short), and a fixed y-range, the same for every country so the
 // lines can be compared (log: on a log scale). Values beyond the range are drawn at its edge; the end values stay exact.
 export const MEASURE_DISPLAY = {
-  imports: {definition: '<b>Imports:</b>% of cereals, 2020–22',
+  imports: {definition: '<b>Imports</b>% of cereals, 2020–22',
     format: v => v <= 0 ? 'net exporter' : `${Math.round(v)}% of cereals`, series: 'Imports, %', short: v => `${Math.round(v)}%`, range: [-50, 100]},   // below 0: net exporter
-  gdp: {definition: '<b>Income:</b>GDP per person in US dollars, 2022; classes follow the World Bank’s income groups (4.5k, 1.1k)',
+  gdp: {definition: '<b>Income</b>GDP per person in US dollars, 2022; classes follow the World Bank’s income groups (4.5k, 1.1k)',
     format: v => '$' + Math.round(v).toLocaleString('en') + ' per person', series: 'GDP per person, US$ (log scale)', short: v => '$' + d3.format('.2~s')(v), range: [150, 60000], log: true},
-  poverty: {definition: '<b>Extreme poverty:</b>% living below the international poverty line, latest survey',
+  poverty: {definition: '<b>Extreme poverty</b>% living below the international poverty line, latest survey',
     format: v => `${Math.round(v)}% in extreme poverty`, series: 'Extreme poverty, %', short: v => `${Math.round(v)}%`, range: [0, 100]},
-  hdi: {definition: '<b>Human development:</b>UNDP Human Development Index; medium below 0.70, low below 0.55',
+  hdi: {definition: '<b>Human development</b>UNDP Human Development Index; medium below 0.70, low below 0.55',
     format: v => v.toFixed(3), series: 'Human Development Index', short: v => v.toFixed(2), range: [0.3, 1]},
-  life: {definition: '<b>Life expectancy:</b>years at birth; classes split at the median (74) and 65',
+  life: {definition: '<b>Life expectancy</b>years at birth; classes split at the median (74) and 65',
     format: v => `${Math.round(v)} years`, series: 'Life expectancy, years', short: v => `${Math.round(v)}`, range: [40, 85]},
-  undernourishment: {definition: '<b>Undernourishment:</b>% of people eating too little, FAO three-year average; classes at 10% and 25%. Chronic hunger makes any shock worse, El Niño or not',
+  undernourishment: {definition: '<b>Undernourishment</b>% of people eating too little, FAO three-year average; classes at 10% and 25%. Chronic hunger makes any shock worse, El Niño or not',
     format: v => v <= 2.5 ? 'under 2.5% undernourished' : `${Math.round(v)}% undernourished`, series: 'Undernourishment, %',
     short: v => v <= 2.5 ? '<2.5%' : `${Math.round(v)}%`, range: [0, 60]},   // FAO reports prevalence below 2.5% only as <2.5 (stored as 2.5)
 };
