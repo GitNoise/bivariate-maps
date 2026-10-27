@@ -1,5 +1,5 @@
 [project]
-name = "el-nino-food-crises"
+name = "bivariate-maps"
 version = "1.0.0"
 description = "Builds the data for the El Niño and food crises map: harvest shortfalls, second measures, walk-forward test."
 requires-python = ">=3.11"
