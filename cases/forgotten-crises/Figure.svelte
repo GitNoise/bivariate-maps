@@ -6,6 +6,7 @@
   import {createGeo} from '../../src/bivariate/geo.js';
   import {createRegions} from '../../src/bivariate/regions.js';
   import BivariateMap from '../../src/bivariate/BivariateMap.svelte';
+  import {BRUSH} from '../../src/bivariate/brush.js';
   import RegionButtons from '../../src/bivariate/RegionButtons.svelte';
   import {createLabeller} from '../../src/bivariate/labels.js';
   import Labels from '../../src/bivariate/Labels.svelte';
@@ -29,12 +30,15 @@
   const outlines = {solid: new Set(), dashed: new Set(Object.keys(cells).filter(id => DATA.countries[id].gapYears >= PERSISTENT_GAP_YEARS))};
   const grey = new Set();
   const legend = {
-    a: {title: 'Need', ticks: ['3', '4']},   // where INFORM's High and Very High start
+    a: {title: 'Need', ticks: ['3', '4']},   // where INFORM's High and Very High start on its 1–5 index (names do not fit)
     b: {title: 'Unfunded', ticks: [Math.round(UNFUNDED_FROM[0]), Math.round(UNFUNDED_FROM[1]) + '%'].map(String)},   // 33, 67%
     top: 'Severe and unfunded',
     label: 'Legend: colour combines humanitarian need (left edge, purple) and the unfunded share of the appeal (right edge, gold); the raised cells at the top are severe crises with largely unfunded appeals',
   };
   const hasData = Object.keys(cells).length > 0;
+  // the sea stippled: a thin band along the coasts, near dots per square screen pixel at the coast falling off over
+  // nearPx pixels, and far ones fading over farPx into the open sea; dot: their size in screen pixels
+  const watercolour = {...BRUSH, stipple: {near: 0.6, nearPx: 3, far: 0.025, farPx: 40, dot: 0.6, opacity: 0.3}};
 
   // the zoom regions (settings.js): a region gets a button when it holds two or more coloured or hatched countries, and
   // its frame fits those countries
@@ -52,14 +56,14 @@
 <figure class="fig" aria-label="Map: humanitarian need and unfunded appeals, by country">
   <div class="fig-top"><RegionButtons {regions} bind:region/></div>
   {#if !hasData}<p class="draft">No data yet: run build_data.py with the two source files (see README.md). Every country is grey until then.</p>{/if}
-  <BivariateMap {geo} {cells} raisedCells={RAISED_CELLS} {outlines} {legend} regions={regions.members} {region} framed={shown} hatched={noAppeal} {grey}
+  <BivariateMap {geo} {cells} raisedCells={RAISED_CELLS} {outlines} {legend} regions={regions.members} {region} framed={shown} hatched={noAppeal} {grey} {watercolour}
                 label="World map of humanitarian need and unfunded appeals by country" hasTooltip={id => shown.has(id)}>
     {#snippet tooltip(id)}<Tooltip {id} name={NAME[id]}/>{/snippet}
     {#snippet overlay(map)}<Labels {map} {labeller} {region} members={regions.members[region]} {named} {nameOf}/>{/snippet}
   </BivariateMap>
   <figcaption>
     <p class="keyline keysym"><span><i class="fiswatch minor"></i>Persistent gap: funded below the year’s average every year since {2026 - PERSISTENT_GAP_YEARS}</span><span><i class="hatchswatch paper"></i>Severe crisis without a UN country appeal (refugees covered by regional plans, appeals that stopped, or none possible): colour shows need only</span></p>
-    <p class="keyline keydefs"><span><b>Need:</b>&nbsp;INFORM Severity category, January 2025 (High above 3, Very High above 4 on its 1–5 index)</span><span><b>Unfunded:</b>&nbsp;% of the country’s {DATA.year ?? ''} UN appeals not funded, in thirds: under 33%, 33–67%, 67% or more; across all of them, {Math.round(100 - (DATA.fundedOverall ?? 0))}%</span></p>
+    <p class="keyline keydefs"><span><b>Need:</b>&nbsp;INFORM Severity category, January 2025, in three classes: Medium or lower, High (from 3 on its 1–5 index), Very High (from 4); INFORM’s five levels with the lowest three merged, as no country with a UN appeal is rated below Medium</span><span><b>Unfunded:</b>&nbsp;% of the country’s {DATA.year ?? ''} UN appeals not funded, in thirds: under 33%, 33–67%, 67% or more; across all of them, {Math.round(100 - (DATA.fundedOverall ?? 0))}%</span></p>
     <p class="source">Sources: OCHA, Global Humanitarian Overview 2025 (December 2025 figures) and Financial Tracking Service; INFORM Severity (European Commission JRC).</p>
   </figcaption>
 </figure>

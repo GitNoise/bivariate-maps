@@ -4,7 +4,7 @@
   --text:680px;   /* the text column, centred; the figure alone runs wider, by the same amount on both sides */
   --bg:#FFFFFF; --panel:#FFFFFF; --inkline:#6E685F; --inkstrong:#4A4640; --btn:#5E5A54; --btnhover:#EFEEEA; --btntext:#FFFFFF; --ink:#1C2622; --ink-2:#434D48; --ink-3:#626B64;
   --rule:#D7DBD3; --land:#E1E4DB; --land-line:#FAFAF6; --dep:#2F6380;
-  --bi00:#FFFFFF; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
+  --bi00:#E9E4DA; --bi10:#DCCB8E; --bi20:#C8B35A; --bi01:#C2ABD2; --bi11:#C8ADA0; --bi21:#AF8E53; --bi02:#9972AF; --bi12:#976B82; --bi22:#804D36; --hatch:#FFFFFF; --nodata:#E4E7EA; --nodatadeep:#D9DEE2;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){

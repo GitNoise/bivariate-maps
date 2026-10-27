@@ -28,8 +28,8 @@ export function measureClass(r){
 
 // each country's cell on the map for a measure: [i, j], i = shortfall class, j = the measure's class, for the countries with
 // both (the others are painted grey). Shortfall runs to purple (left edge of the diamond), the measure to gold (right edge);
-// the lowest cell on both axes is laid on at the brush's `low` (0: the white paper shows through), so most of the world stays
-// close to bare paper, as in ink-and-wash drawings. One object per measure, so the map repaints when the measure changes
+// the lowest cell on both axes is a pale wash (--bi00, laid on at the brush's `low`), so most of the world stays close to
+// paper, as in ink-and-wash drawings, but still reads apart from the grey of too little data. One object per measure, so the map repaints when the measure changes
 const cellCache = {};
 export function cellsFor(measure){
   if(!cellCache[measure]){

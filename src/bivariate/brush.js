@@ -6,8 +6,8 @@ import * as d3 from 'd3';
 import {bbox, segDist2} from './geometry.js';
 
 // the brush settings: layers, coverage (cover; low for the lowest cell, nodata for grey), edge spill, deformation, blotch
-// sizes and the seed. A map can pass its own
-export const BRUSH = {maxBlotches: 160, spill: 0.01, layers: 14, cover: 0.97, base: 0.72, baseDark: 0.86, low: 0, nodata: 0.88, pre: 1, per: 2, amp: 0.3, maxPre: 2.6, maxLayer: 2.2, simplify: 0.8, seed: 11, maskShare: 0.55, rMin: 7, rMax: 24};
+// sizes and the seed; stipple (optional) dots the sea (wash.js). A map can pass its own
+export const BRUSH = {maxBlotches: 160, spill: 0.01, layers: 14, cover: 0.97, base: 0.72, baseDark: 0.86, low: 0.55, nodata: 0.88, pre: 1, per: 2, amp: 0.3, maxPre: 2.6, maxLayer: 2.2, simplify: 0.8, seed: 11, maskShare: 0.55, rMin: 7, rMax: 24};
 
 // seeded random numbers (Park-Miller), so the same shape gets the same brushwork every time
 let brushSeed = 1;

@@ -111,18 +111,88 @@ export function createWash(geo, settings){
     return (sheetCache[look.region] = p);
   }
 
+  // ---- the stippled ocean (optional: settings.stipple) ------------------------------------------------------
+  // dots on the sea, dense in a thin band along the coasts and thinning out to the open ocean, like an engraver's stipple.
+  // The band is measured in screen pixels, so it stays thin at every zoom and narrow seas keep paper between their
+  // shores: near * exp(-d / nearPx) + far * exp(-d / farPx) dots per square screen pixel, d the distance to the nearest
+  // coast in screen pixels. The distance to the coast is computed once (land rasterised at RES cells per map unit, then a
+  // chamfer distance transform); the dots are scattered for each settled view, over what is on screen, and reused while
+  // the map zooms. Seeded, so a view's dots never move; drawn at a constant size on screen
+  const RES = 3;
+  let coastDistance = null;
+  function distanceToCoast(){
+    if(coastDistance) return coastDistance;
+    const W = Math.ceil(geo.width * RES), H = Math.ceil(geo.height * RES);
+    const land = document.createElement('canvas'); land.width = W; land.height = H;
+    const g = land.getContext('2d');
+    g.setTransform(RES, 0, 0, RES, 0, 0);
+    g.beginPath(); d3.geoPath(geo.projection, g)({type: 'FeatureCollection', features: geo.shapes.features}); g.fill();
+    const alpha = g.getImageData(0, 0, W, H).data;
+    const dist = new Float32Array(W * H);
+    for(let i = 0; i < W * H; i++) dist[i] = alpha[i * 4 + 3] > 0 ? 0 : 1e9;
+    const D = Math.SQRT2;
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+      const i = y * W + x; let v = dist[i];
+      if(x > 0) v = Math.min(v, dist[i - 1] + 1);
+      if(y > 0){ v = Math.min(v, dist[i - W] + 1); if(x > 0) v = Math.min(v, dist[i - W - 1] + D); if(x < W - 1) v = Math.min(v, dist[i - W + 1] + D); }
+      dist[i] = v;
+    }
+    for(let y = H - 1; y >= 0; y--) for(let x = W - 1; x >= 0; x--){
+      const i = y * W + x; let v = dist[i];
+      if(x < W - 1) v = Math.min(v, dist[i + 1] + 1);
+      if(y < H - 1){ v = Math.min(v, dist[i + W] + 1); if(x < W - 1) v = Math.min(v, dist[i + W + 1] + D); if(x > 0) v = Math.min(v, dist[i + W - 1] + D); }
+      dist[i] = v;
+    }
+    return (coastDistance = {W, H, dist});   // in cells; a cell is 1 / RES map units
+  }
+  // the dots for the view at transform t, over the screen and a margin: {xs, ys} in map units
+  let stippleDots = null, stippleKey = null;
+  function scatter(t){
+    const {near, nearPx, far, farPx} = settings.stipple;
+    const {W, H, dist} = distanceToCoast();
+    const pxPerUnit = canvas.getBoundingClientRect().width / geo.width * t.k;   // screen pixels per map unit
+    const pxPerCell = pxPerUnit / RES, cellArea = pxPerCell * pxPerCell;
+    const margin = 0.1 * geo.width / t.k;
+    const x0 = Math.max(0, Math.floor((t.invertX(0) - margin) * RES)), x1 = Math.min(W, Math.ceil((t.invertX(geo.width) + margin) * RES));
+    const y0 = Math.max(0, Math.floor((t.invertY(0) - margin) * RES)), y1 = Math.min(H, Math.ceil((t.invertY(geo.height) + margin) * RES));
+    seedBrush(settings.seed + 104729 + Math.round(t.k * 1000));
+    const xs = [], ys = [];
+    for(let y = y0; y < y1; y++) for(let x = x0; x < x1; x++){
+      const c = dist[y * W + x];
+      if(c === 0) continue;
+      const d = c * pxPerCell;   // screen pixels to the coast
+      const expected = (near * Math.exp(-d / nearPx) + far * Math.exp(-d / farPx)) * cellArea;
+      let n = Math.floor(expected); if(brushRandom() < expected - n) n++;
+      for(let k = 0; k < n; k++){ xs.push((x + brushRandom()) / RES); ys.push((y + brushRandom()) / RES); }
+    }
+    return {xs: Float32Array.from(xs), ys: Float32Array.from(ys)};
+  }
+  function drawStipple(t, s, settled){
+    if(!settings.stipple) return;
+    const key = [t.k, t.x, t.y].map(v => v.toFixed(2)).join(',');
+    if(settled && key !== stippleKey){ stippleDots = scatter(t); stippleKey = key; }
+    if(!stippleDots) return;
+    const dpr = canvas.width / Math.max(1, canvas.getBoundingClientRect().width);
+    const r = settings.stipple.dot * dpr / (s * t.k) / 2;   // half the dot, in map units, so it stays the same size on screen
+    context.fillStyle = cssVar('--ink'); context.globalAlpha = settings.stipple.opacity;
+    for(let i = 0; i < stippleDots.xs.length; i++) context.fillRect(stippleDots.xs[i] - r, stippleDots.ys[i] - r, 2 * r, 2 * r);
+    context.globalAlpha = 1;
+  }
+
   // ---- painting --------------------------------------------------------------------------------------------
   const isDarkTheme = () => { const c = d3.rgb(getComputedStyle(document.body).backgroundColor); return c.r + c.g + c.b < 300; };
 
   // paint the washes (from build) at zoom transform t. look: what the data says about each country —
   // {fillOf(id), isGrey(id), isLowest(id), isRaised(id), inRegion(id), region: 'world' or a region's key, members: its ids}
-  function draw(t, washes, look){
+  // settled: false while the map zooms (the sea's dots are scattered only for a settled view)
+  function draw(t, washes, look, settled = true){
     if(!washes) return;
     const s = canvas.width / geo.width;
     context.setTransform(1, 0, 0, 1, 0, 0); context.clearRect(0, 0, canvas.width, canvas.height);
     context.setTransform(s * t.k, 0, 0, s * t.k, s * t.x, s * t.y);
     clearCssCache();   // theme colours: read once per frame
     const nodata = cssVar('--nodata'), nodataDeep = cssVar('--nodatadeep'), bg = cssVar('--bg'), dark = isDarkTheme();
+    drawStipple(t, s, settled);   // the sea first: the countries' washes lie over any dot that strays onto a coast
 
     const paintOne = c => {
       const fill = look.fillOf(c.id), isNoData = !fill;

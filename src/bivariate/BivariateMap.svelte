@@ -132,7 +132,7 @@
       if(elapsed >= duration){ tick.stop(); running = null; settle(t, washes); return; }
       const [x, y, k] = between(easeCubicInOut(elapsed / duration)), frame = zoomIdentity.translate(x, y).scale(k);
       zoom.current = frame;
-      wash.draw(frame, washes, look());
+      wash.draw(frame, washes, look(), false);
     });
     running = {timer: tick, t, washes};
   }
