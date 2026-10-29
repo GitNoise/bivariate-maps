@@ -1,7 +1,7 @@
 """Need and missing money: writes data.js, each country's humanitarian need, how much of its UN appeals was funded, and
 for how many years in a row it has had one.
 
-    .venv/bin/python cases/forgotten-crises/build_data.py <GHO monthly table XLSX> <INFORM Severity XLSX> <FTS requirements and funding CSV>
+    .venv/bin/python cases/underfunded-crises/build_data.py <GHO monthly table XLSX> <INFORM Severity XLSX> <FTS requirements and funding CSV>
 
 Need: the INFORM Severity Index (1–5 before February 2026) and its category, from INFORM's country sheet (one row per
 country; where a country has two, the more severe), or, for a country missing there, its most severe crisis in the sheet of

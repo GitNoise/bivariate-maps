@@ -38,7 +38,7 @@ Each case is a page of its own in `cases/<case>/`, built with the same bivariate
 
 | Case | What it maps |
 |---|---|
-| `cases/forgotten-crises/` | Draft, "Need and missing money": humanitarian need (INFORM Severity) against the unfunded share of each country's 2025 UN appeals (OCHA), with new appeals outlined. |
+| `cases/underfunded-crises/` | Draft, "Need and missing money": humanitarian need (INFORM Severity) against the unfunded share of each country's 2025 UN appeals (OCHA), with new appeals outlined. |
 
 ## The analysis
 

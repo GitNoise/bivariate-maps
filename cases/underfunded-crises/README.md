@@ -20,9 +20,9 @@ below the year's average every year since 2021. (The folder keeps its first name
 4. **Tooltip context:** DG ECHO's forgotten crises for 2026 (its forgotten crises page, updated 7 October 2025), entered by hand in `settings.js`.
 
 ```bash
-make forgotten-crises GHO=data/raw/forgotten-crises/gho-2025/GHO_2025_December_HDX.xlsx INFORM=data/raw/forgotten-crises/inform-2025-01/202501_INFORM_Severity_January_2025.xlsx FTS=data/raw/forgotten-crises/fts/fts_requirements_funding_global.csv
-npm run dev                                             # then open /cases/forgotten-crises/
-make page                                               # dist/cases/forgotten-crises/index.html, with the El Niño page
+make underfunded-crises GHO=data/raw/underfunded-crises/gho-2025/GHO_2025_December_HDX.xlsx INFORM=data/raw/underfunded-crises/inform-2025-01/202501_INFORM_Severity_January_2025.xlsx FTS=data/raw/underfunded-crises/fts/fts_requirements_funding_global.csv
+npm run dev                                             # then open /cases/underfunded-crises/
+make page                                               # dist/cases/underfunded-crises/index.html, with the El Niño page
 ```
 
 `make setup` installs `openpyxl`, which reads the Excel files.
