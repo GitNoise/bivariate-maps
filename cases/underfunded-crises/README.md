@@ -1,4 +1,4 @@
-# Need and missing money (draft)
+# Need and missing money
 
 Humanitarian need against the share of each country's 2025 UN appeals that went unfunded. Both high, the top of the
 diamond, is a severe crisis whose appeal is largely unfunded. The outline adds a third dimension: gaps that persist, funded
